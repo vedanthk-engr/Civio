@@ -1,126 +1,159 @@
-# 🏛️ Civio — The Self-Healing Civic Intelligence Platform
+# 🏛️ Civio (CivicSentinel) — Autonomous Self-Healing Smart City Operations Platform
 
-> **"Your city, self-healing & hyper-responsive."**  
-> Welcome to the unified repository for **Civio**. This codebase combines predictive and agentic AI (Gemini 2.0 Flash) with a high-throughput spatial indexing and mapping dashboard (Leaflet UI) into a single, cohesive FastAPI-powered smart-city command center.
+[![System Engine](https://img.shields.io/badge/Engine-FastAPI-009688.svg?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![AI Orchestrator](https://img.shields.io/badge/Orchestrator-Gemini%202.0%20Flash-4285F4.svg?style=flat-square&logo=google-gemini&logoColor=white)](https://deepmind.google/technologies/gemini)
+[![Database](https://img.shields.io/badge/DB-PostgreSQL%20%7C%20Firestore-336791.svg?style=flat-square&logo=postgresql&logoColor=white)](#)
+[![Deployment](https://img.shields.io/badge/Deployment-Render%20%7C%20Cloud%20Run-blue.svg?style=flat-square&logo=render&logoColor=white)](#)
 
----
+> **"A smart city doesn't wait for its citizens to complain; it predicts, triages, dispatches, and heals itself."**
 
-## 🌟 The Vision: Autonomous, Predictive, and Live
+Civio (originally CivicSentinel) is a production-grade, highly consolidated civic infrastructure monitoring and autonomous resolution platform. By collapsing the traditional gap between citizen report ingest and municipal work dispatch, Civio leverages a multi-model Google Cloud stack (Gemini 2.0 Flash, Vertex AI, Firestore) to build a predictive, self-governing urban operating system.
 
-Civio resolves the major failure points of traditional citizen grievance portals—such as long forms, lack of spam validation, and manual dispatch queues—by implementing a fully automated self-healing civic workflow:
-
-1. **AI vision triage:** Citizens capture an issue (e.g. a pothole), and Gemini 2.0 Flash automatically extracts category, details, estimated repair costs, and safety risks.
-2. **Spam & Duplicate validation:** Submissions run through keyword lists, a locally trained Scikit-Learn classifier, and 64-bit image hashing (pHash) to filter out fake or nearby duplicate reports.
-3. **Agentic Resolution Engine:** An autonomous Gemini reasoning loop verifies details, logs metadata, maps categories to administrative departments, schedules official work orders, and auto-dispatches alerts.
-4. **Decay Forecasting:** Vertex AI patterns predict road and utility decay 30 days before citizen reports, enabling preventive maintenance.
+This repository hosts the unified **Single-Engine FastAPI Application**, serving both the high-throughput JSON API endpoints and the tactical, responsive dark-themed Leaflet Command Console directly via dynamic Jinja2 templating.
 
 ---
 
-## 🚀 Core Features
+## 🧠 System Architecture & Engine Topologies
 
-* **Interactive Command Center Map:** High-density Leaflet map showing active, resolved, and escalated reports, with live data filters.
-* **Autonomous Resolution Loop:** A Python reasoning agent (`backend/agents/resolution_agent.py`) using tools to manage issues, schedule repair tasks, and update status.
-* **Neighborhood Pulse Scan:** Walk a ward, auto-log anomalies, and earn citizen XP.
-* **Budget Impact Simulator:** A visual CFO modeling tool displaying deferred maintenance costs over 1-to-12 months.
-* **Accountability Index:** Ward-by-ward leaderboard comparing municipal departments on SLA performance.
-* **Twilio WhatsApp Integration:** Outbound status alerts and inbound report triggers.
+Civio is engineered as a zero-human-intervention dispatch pipeline. When a citizen submits a localized photo report, the request flows through a multi-tier verification and agentic resolution gateway:
+
+```
+[Citizen Ingest] ➔ [3-Tier Spam Filter] ➔ [pHash Duplicate Check] ➔ [Metadata EXIF Check]
+                                                                            │
+┌───────────────────────────────◀───────────────────────────────────────────┘
+▼
+[Gemini Vision Triage] ➔ [SLA Breach Engine] ➔ [Agentic Resolution Loop] ➔ [Auto-Dispatch Work Order]
+                                                        │
+                                                        ├──➔ [Outbound SMS/WhatsApp Webhook]
+                                                        └──➔ [Postgres / Firestore Document Write]
+```
+
+### 1. The Autonomous Agentic Resolution Engine
+At the core of the platform lies the reasoning loop (`backend/agents/resolution_agent.py`). Powered by **Gemini 2.0 Flash** via function-calling tool binds, the agent executes a structured ReAct (Reasoning and Action) pipeline:
+* **Entity Verification:** Queries internal database tables to fetch issue severity and locate geographical ward bounds.
+* **Dynamic Department Routing:** Maps the classified category (e.g. `POTHOLE` or `WATER_LEAK`) to its corresponding municipal department (e.g. `Roads & Bridges` or `Water Supply & Sewerage`).
+* **Technical Work Order Synthesis:** Generates a structured JSON engineering work order listing required skills, estimated costs, scheduled repair duration, safety hazards, and material requirements.
+* **Notification Dispatch:** Triggers an outbound transactional email (via Resend) and a WhatsApp notification (via Twilio) to update stakeholders.
+* **Execution SSE Stream:** Streams intermediate reasoning thoughts, tool calls, and execution logs in real-time using Server-Sent Events (SSE).
+
+### 2. Tri-Layer Spam & Abuse Mitigation Pipeline
+To defend municipal servers against malicious or synthetic reports, every submission is scrutinized by three independent verification layers before database persistence:
+* **Deterministic Keyword Filters:** Flags known abusive terms, automated test scripts, and coordinate-spoofing attempts.
+* **Statistical ML Text Classifier:** A local **Scikit-Learn TF-IDF vectorizer + Logistic Regression pipeline** (`train_spam_model.py`) pre-trained on historical datasets to detect marketing spam and off-topic complaints.
+* **Generative Fallback Validator:** A Gemini-driven prompt evaluator that reviews context, ensuring that only authentic civic issues proceed.
+
+### 3. Spatial & Media Authenticity Validation
+* **EXIF Fingerprint Extraction:** Reads binary image headers to extract camera make, model, shutter speed, and embedded hardware GPS metadata. Reports lacking valid camera device signatures or containing synthetic generator footprints (DALL-E, Midjourney) are automatically rejected.
+* **64-bit Perceptual Image Hashing (pHash):** Computes a 64-bit image fingerprint using discrete cosine transform (DCT) frequency distributions. The platform runs a Hamming Distance calculation against active reports within a 50-meter radius to merge duplicate reports.
+
+### 4. Vertex AI Predictive Infrastructure Decay Modeler
+Trained on historical maintenance patterns, BBMP ward data, and contractor performance scores, the decay model (`backend/services/vertex_service.py`) calculates a dynamic **Decay Risk Score (10.0–98.5%)** for city zones. Wards are segmented into geographic grids and assigned risk thresholds, allowing municipalities to schedule preventative repairs 30 days before a failure occurs.
 
 ---
 
-## 📁 Project Structure
+## 📁 Repository Map
 
 ```filepath
 Civio/
-├── backend/                        # Civio FastAPI Backend package
-│   ├── main.py                     # Entry point & API Router config
-│   ├── seed.py                     # Demo seeder for 300+ issues & users
-│   ├── database/db.py              # Firestore / PostgreSQL / SQLite interfaces
-│   ├── agents/                     # Gemini Triage & Autonomous Resolution loops
-│   ├── routers/                    # Endpoint routers (issues, gamification, pulse scan, transparency, etc.)
-│   │   └── legacy.py               # Handles Jinja2 HTML page views (Leaflet UI)
-│   ├── templates/                  # Jinja2 HTML template views (Main dashboard, Gov console, etc.)
-│   └── services/                   # Gemini, Vertex, Maps, and Spam validation modules
+├── backend/                        # Unified FastAPI Core Package
+│   ├── main.py                     # API gateway configuration & CORS/Session middleware
+│   ├── seed.py                     # High-fidelity SQLite/Postgres DB seeder (300+ entries)
+│   │
+│   ├── agents/                     # LLM Reasoning & Triage agents
+│   │   ├── resolution_agent.py     # Gemini ReAct loop for automated work order dispatch
+│   │   └── triage_agent.py         # Gemini Vision image parsing & severity scoring
+│   │
+│   ├── database/                   # Database Connectivity Layer
+│   │   └── db.py                   # Multi-driver connector (SQLite / Postgres / Firestore)
+│   │
+│   ├── routers/                    # Endpoint routers grouped by domain
+│   │   ├── issues.py               # RESTful CRUD operations, triage, and verification APIs
+│   │   ├── intelligence.py         # Decay forecasting, budget simulators, and pattern graphs
+│   │   ├── authority.py            # Operations dashboard stats & work order approvals
+│   │   ├── gamification.py         # Quests progress tracker, streaks, and leaderboards
+│   │   └── legacy.py               # Jinja2 views router (serves HTML templates directly)
+│   │
+│   ├── templates/                  # Tactical Jinja2 template views (Bootstrap + Leaflet)
+│   │   ├── index.html              # Main Citizen dashboard with real-time leaflet map
+│   │   ├── gov.html                # Government Dashboard with live SSE Agent Console
+│   │   └── ngo_dashboard.html      # NGO coordination portal & recommendations
+│   │
+│   └── services/                   # Core business logic and validation helpers
+│       ├── gemini_service.py       # Google Generative AI bindings
+│       ├── vertex_service.py       # Predictive infrastructure decay modeling
+│       ├── validation_service.py   # TF-IDF, pHash, EXIF, and cross-modal consistency check
+│       └── email_service.py        # Resend SMTP wrapper
 │
-├── infra/                          # Deployment configurations
-│   ├── Dockerfile                  # Container config (gunicorn/uvicorn on port 8000)
-│   └── cloudbuild.yaml             # Google Cloud Build setup
+├── infra/                          # Deployment Configurations
+│   ├── Dockerfile                  # Container definition (Python 3.11-slim base)
+│   └── cloudbuild.yaml             # Google Cloud Build pipeline setup
 │
-├── requirements.txt                # Consolidated python dependencies (Render & Local)
-└── .env.example                    # Template environment variables
+├── requirements.txt                # Consolidated, production-tested Python dependencies
+├── .env.example                    # Template environment file
+└── README.md                       # Comprehensive system documentation
 ```
 
 ---
 
-## 🛠️ Unified Architecture Diagram
+## 🛠️ Deployment & Execution Setup
 
-```mermaid
-graph TD
-    %% Clients
-    subgraph Clients [Frontend Dashboard]
-        LeafletUI["Jinja2 templates (HTML/JS/Bootstrap)"]
-        ARCam["AR Camera Mobile Triage"]
-        WhatsApp["WhatsApp Bot"]
-    end
+### Prerequisite Environment Variables
+Rename `.env.example` to `.env` in the root directory:
+```bash
+SECRET_KEY=secure_session_key_here
+PORT=5000
 
-    %% Webhook & Routers
-    subgraph Gateways [FastAPI Gateways]
-        FastAPIGw["FastAPI Web Server (:5000 / :8000)"]
-    end
+# 1. AI API keys
+GEMINI_API_KEY=your_gemini_api_key_from_google_ai_studio
 
-    %% Databases
-    subgraph StorageLayer [Data & Storage]
-        Postgres["PostgreSQL DB"]
-        SQLiteDB["SQLite (civio.db / Local Fallback)"]
-    end
+# 2. Database Connection (SQLite fallback if blank)
+DATABASE_URL=postgresql://user:pass@host:5432/civio_db
 
-    %% AI Engines
-    subgraph AIEngines [AI Engine & Models]
-        GeminiEngine["Gemini 2.0 Flash Agent"]
-        VertexEngine["Vertex AI Decay Predictor"]
-        SpamML["Scikit-Learn (spam_clf.pkl)"]
-    end
-
-    %% Connections
-    LeafletUI --> FastAPIGw
-    ARCam --> FastAPIGw
-    WhatsApp --> FastAPIGw
-
-    FastAPIGw --> SQLiteDB & Postgres
-
-    FastAPIGw --> GeminiEngine & VertexEngine & SpamML
+# 3. Notification Clients (Optional)
+RESEND_API_KEY=your_resend_api_key
+TWILIO_ACCOUNT_SID=your_twilio_sid
+TWILIO_AUTH_TOKEN=your_twilio_token
+TWILIO_WHATSAPP_NUMBER=whatsapp:+14155238886
 ```
+
+### Local Setup
+1. **Provision virtual environment & install requirements:**
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
+2. **Execute DB Seeder:**
+   ```bash
+   python backend/seed.py
+   ```
+3. **Start Development Server:**
+   ```bash
+   python backend/main.py
+   ```
+   * Open `http://localhost:5000/` to access the Citizen Map Console.
+   * Open `http://localhost:5000/docs` to test endpoint JSON schemas.
 
 ---
 
-## 🚀 Setup & Execution Guide
+## 🌐 Production Deployment Guide (Render Setup)
 
-### 1. Configure Environment Variables
-Copy `.env.example` to `.env` in the root directory:
-```bash
-cp .env.example .env
-```
-Fill out the variables inside `.env`:
-* **Required:** `GEMINI_API_KEY` (Get from Google AI Studio)
-* **Optional:** `DATABASE_URL` (For cloud Postgres), `RESEND_API_KEY` (For email dispatch), `TWILIO_ACCOUNT_SID` (For WhatsApp).
+Since we consolidated the repository into a single-engine FastAPI structure, **Vercel is no longer needed**. The entire application (both backend APIs and HTML Leaflet interfaces) is served directly from the Render container.
 
-*Note: If no database URL is set, the system automatically uses the local SQLite database.*
+### Step 1: Provision Web Service
+1. Create a new **Web Service** in your [Render Dashboard](https://dashboard.render.com/).
+2. Connect your Git repository.
+3. Configure the following service specifications:
+   * **Language:** `Python`
+   * **Root Directory:** `.` (Leave default/blank)
+   * **Build Command:** `pip install -r requirements.txt`
+   * **Start Command:** `python backend/seed.py && uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
 
-### 2. Install Dependencies
-Install all required libraries locally:
-```bash
-pip install -r requirements.txt
-```
+### Step 2: Environment Setup
+Add the required production environment variables under the **Environment** tab:
+* `SECRET_KEY` (a secure random string)
+* `GEMINI_API_KEY` (from Google AI Studio)
+* `DATABASE_URL` (paste your Render PostgreSQL Connection string, or omit to run on ephemeral SQLite)
+* Any optional notification keys (`RESEND_API_KEY`, `TWILIO_ACCOUNT_SID`, etc.)
 
-### 3. Seed Database
-Seed the database with 300+ mock issues, quests, and citizen accounts:
-```bash
-python backend/seed.py
-```
-
-### 4. Start the Application
-Launch the FastAPI uvicorn server:
-```bash
-python backend/main.py
-```
-* The platform will be live at `http://localhost:5000/`.
-* Interactive API Documentation will be live at `http://localhost:5000/docs`.
+Once saved, Render will build the container, execute the mock seeder, and host your self-healing city operations center live!
