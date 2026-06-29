@@ -1421,7 +1421,7 @@ let _currentStyle = MAPTILER_STYLE;
 if (MAPTILER_KEY) {
   _tileLayer = L.tileLayer(`https://api.maptiler.com/maps/${MAPTILER_STYLE}/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, { attribution:'© MapTiler © OpenStreetMap', maxZoom:19, crossOrigin:true }).addTo(map);
 } else {
-  _tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/voyager/{z}/{x}/{y}{r}.png', { attribution:'© OpenStreetMap © CARTO', maxZoom:19, subdomains:'abcd' }).addTo(map);
+  _tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution:'© OpenStreetMap © CARTO', maxZoom:19, subdomains:'abcd' }).addTo(map);
 }
 const markerLayer = L.layerGroup().addTo(map);
 const ngoLayer    = L.layerGroup().addTo(map);
