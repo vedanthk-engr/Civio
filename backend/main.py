@@ -11,7 +11,8 @@ from backend.routers import (
     pulse_scan,
     transparency,
     whatsapp,
-    ngo
+    ngo,
+    admin
 )
 
 app = FastAPI(
@@ -39,6 +40,7 @@ app.include_router(pulse_scan.router, prefix="/api")
 app.include_router(transparency.router, prefix="/api")
 app.include_router(whatsapp.router, prefix="/api")
 app.include_router(ngo.router, prefix="/api")
+app.include_router(admin.router, prefix="/api")
 
 @app.get("/")
 def read_root():

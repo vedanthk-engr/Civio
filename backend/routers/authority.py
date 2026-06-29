@@ -113,3 +113,20 @@ async def get_civic_pulse_report_endpoint(ward: str = Query("Indiranagar")):
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "reportHtml": report
     }
+
+_AUTHORITY_MAP = {
+    'pothole':      {'name': 'MCD Road Maintenance Division',                  'email': 'pgms@mcdonline.nic.in'},
+    'waterleak':    {'name': 'Delhi Jal Board (Water Supply Division)',        'email': 'cmo@delhijalboard.in'},
+    'streetlight':  {'name': 'MCD Lighting Department',                       'email': 'pgms@mcdonline.nic.in'},
+    'waste':        {'name': 'MCD Sanitation Department',                      'email': 'pgms@mcdonline.nic.in'},
+    'roaddamage':   {'name': 'MCD Road Maintenance Division',                  'email': 'pgms@mcdonline.nic.in'},
+    'encroachment': {'name': 'Office of the District Magistrate, Delhi',       'email': 'dm.newdelhi@delhi.gov.in'},
+    'sewage':       {'name': 'Delhi Jal Board (Sewerage Division)',            'email': 'cmo@delhijalboard.in'},
+    'other':        {'name': 'Office of the District Magistrate, Delhi',       'email': 'dm.newdelhi@delhi.gov.in'},
+}
+
+@router.get("/contact/{tag}")
+async def get_authority_contact(tag: str):
+    clean_tag = tag.lower().replace("_", "")
+    contact = _AUTHORITY_MAP.get(clean_tag, _AUTHORITY_MAP['other'])
+    return contact

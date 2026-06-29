@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api';
 
 export interface Issue {
   id: string;
@@ -344,5 +344,23 @@ export const api = {
     const res = await fetch(`${API_BASE_URL}/transparency/complaint/${id}?${params.toString()}`);
     if (!res.ok) throw new Error('Failed to draft complaint letter');
     return res.json();
+  },
+
+  async sendComplaintEmail(id: string, citizenName?: string): Promise<{ success: boolean; recipient: string }> {
+    const res = await fetch(`${API_BASE_URL}/transparency/complaint/${id}/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ citizenName }),
+    });
+    if (!res.ok) throw new Error('Failed to send complaint email');
+    return res.json();
+  },
+
+  getSpamCSVUrl(): string {
+    return `${API_BASE_URL}/admin/export-spam-csv`;
+  },
+
+  getRealCSVUrl(): string {
+    return `${API_BASE_URL}/admin/export-real-csv`;
   },
 };

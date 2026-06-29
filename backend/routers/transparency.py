@@ -104,3 +104,45 @@ async def get_draft_complaint(id: str, citizenName: Optional[str] = Query("Conce
     from backend.services.gemini_service import draft_complaint_letter
     letter = await draft_complaint_letter(issue, citizenName)
     return letter
+
+@router.post("/complaint/{id}/send")
+async def send_complaint_email_endpoint(
+    id: str,
+    payload: dict = Body(...)
+):
+    from fastapi import HTTPException, Body
+    citizen_name = payload.get("citizenName", "Concerned Citizen")
+    
+    issue = db.get_document("issues", id)
+    if not issue:
+        raise HTTPException(status_code=404, detail="Issue not found")
+        
+    from backend.services.gemini_service import draft_complaint_letter
+    letter = await draft_complaint_letter(issue, citizen_name)
+    
+    subject = letter.get("subject", f"Civic Complaint - Ref #{id}")
+    body_text = letter.get("body", "")
+    body_html = "<h3>Civio Grievance Dispatch</h3>" + "".join(f"<p>{line}</p>" for line in body_text.split("\n") if line.strip())
+    
+    from backend.routers.authority import _AUTHORITY_MAP
+    category = str(issue.get("category", "OTHER")).lower().replace("_", "")
+    contact = _AUTHORITY_MAP.get(category, _AUTHORITY_MAP['other'])
+    to_email = contact['email']
+    
+    from backend.services.email_service import EmailService
+    result = EmailService.send_complaint(
+        to_email=to_email,
+        subject=subject,
+        body_html=body_html,
+        body_text=body_text
+    )
+    
+    import uuid
+    db.save_document("audit_logs", f"AUD-{uuid.uuid4().hex[:6].upper()}", {
+        "issueId": id,
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "action": "COMPLAINT_DISPATCHED",
+        "description": f"Complaint letter emailed to {contact['name']} ({to_email}) via Resend."
+    })
+    
+    return {"success": not result.get("error"), "result": result, "recipient": to_email}

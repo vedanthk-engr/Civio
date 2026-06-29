@@ -113,6 +113,24 @@ export default function CommandCenterPage() {
 
         {/* Load indicators for departments */}
         <div className="flex flex-wrap gap-4 items-center">
+          {/* Admin CSV Exports */}
+          <div className="flex items-center space-x-2 border-r border-civic-border/50 pr-4 mr-2">
+            <a 
+              href={api.getRealCSVUrl()} 
+              download
+              className="bg-civic-teal/15 border border-civic-teal/30 hover:bg-civic-teal/25 text-civic-teal-light font-bold py-1.5 px-3 rounded-lg text-[10px] transition-all"
+            >
+              Export Real CSV
+            </a>
+            <a 
+              href={api.getSpamCSVUrl()} 
+              download
+              className="bg-civic-coral/15 border border-civic-coral/30 hover:bg-civic-coral/25 text-civic-coral font-bold py-1.5 px-3 rounded-lg text-[10px] transition-all"
+            >
+              Export Spam CSV
+            </a>
+          </div>
+
           {dashboard.departmentWorkloads && Object.entries(dashboard.departmentWorkloads).map(([name, data]: [string, any]) => (
             <div key={name} className="bg-civic-surface-2 border border-civic-border p-2 rounded-lg text-xs min-w-32 flex flex-col justify-between">
               <span className="text-[10px] text-civic-text-muted font-bold truncate max-w-28">{name}</span>

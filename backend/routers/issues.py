@@ -42,11 +42,35 @@ async def triage_issue_endpoint(payload: TriageRequest):
     if payload.description:
         spam_check = classify_spam(payload.description)
         if spam_check['verdict'] in ('spam', 'abuse'):
+            spam_id = f"SPM-{uuid.uuid4().hex[:6].upper()}"
+            db.save_document("spam_issues", spam_id, {
+                "id": spam_id,
+                "user_name": "Citizen",
+                "description": payload.description,
+                "lat": payload.lat,
+                "lng": payload.lng,
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "spam_verdict": spam_check['verdict'],
+                "spam_reason": spam_check['reason'],
+                "spam_confidence": spam_check.get('confidence', 80)
+            })
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Submission rejected: {spam_check['reason']}"
             )
         if spam_check['verdict'] == 'test':
+            spam_id = f"SPM-{uuid.uuid4().hex[:6].upper()}"
+            db.save_document("spam_issues", spam_id, {
+                "id": spam_id,
+                "user_name": "Citizen",
+                "description": payload.description,
+                "lat": payload.lat,
+                "lng": payload.lng,
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "spam_verdict": spam_check['verdict'],
+                "spam_reason": spam_check['reason'],
+                "spam_confidence": spam_check.get('confidence', 80)
+            })
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Test submission ignored."
@@ -56,6 +80,18 @@ async def triage_issue_endpoint(payload: TriageRequest):
     if payload.imageData:
         ai_img_check = detect_ai_image(payload.imageData)
         if ai_img_check.get("is_ai_generated") and ai_img_check.get("confidence", 0) >= 70:
+            spam_id = f"SPM-{uuid.uuid4().hex[:6].upper()}"
+            db.save_document("spam_issues", spam_id, {
+                "id": spam_id,
+                "user_name": "Citizen",
+                "description": payload.description or "AI Image detected",
+                "lat": payload.lat,
+                "lng": payload.lng,
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "spam_verdict": "synthetic_image",
+                "spam_reason": f"Synthetic/AI-generated image detected. Signals: {', '.join(ai_img_check.get('signals', []))}",
+                "spam_confidence": ai_img_check.get("confidence", 75)
+            })
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Synthetic/AI-generated image detected. Submission rejected. Signals: {', '.join(ai_img_check.get('signals', []))}"
@@ -270,3 +306,34 @@ async def upvote_issue(id: str):
     upvotes = issue.get("upvotes", 0) + 1
     db.update_document("issues", id, {"upvotes": upvotes})
     return {"success": True, "upvotes": upvotes}
+
+@router.get("/debug/dup-check")
+async def debug_dup_check(
+    lat: float,
+    lng: float,
+    category: str,
+    radius: int = 50
+):
+    """
+    Test duplicate detection candidates without creating an issue.
+    """
+    try:
+        existing_issues = db.list_documents("issues")
+        dup_id = await detect_duplicate(
+            {"lat": lat, "lng": lng, "ward": "Indiranagar"},
+            category,
+            "Duplicate check test",
+            existing_issues
+        )
+        
+        matched_issue = db.get_document("issues", dup_id) if dup_id else None
+        
+        return {
+            "query": {"lat": lat, "lng": lng, "category": category, "radius_m": radius},
+            "matched": dup_id is not None,
+            "matched_issue_id": dup_id,
+            "matched_title": matched_issue.get("title") if matched_issue else None,
+            "matched_description": matched_issue.get("description") if matched_issue else None
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -22,6 +22,7 @@ export default function TransparencyPage() {
   const [citizenName, setCitizenName] = useState('');
   const [complaintLetter, setComplaintLetter] = useState<{ subject: string; body: string } | null>(null);
   const [isDrafting, setIsDrafting] = useState(false);
+  const [isSending, setIsSending] = useState(false);
 
   const handleDraftComplaint = async () => {
     if (!advocacyIssueId) return;
@@ -33,6 +34,23 @@ export default function TransparencyPage() {
       alert("Failed to draft letter: " + err.message);
     } finally {
       setIsDrafting(false);
+    }
+  };
+
+  const handleSendEmail = async () => {
+    if (!advocacyIssueId) return;
+    setIsSending(true);
+    try {
+      const result = await api.sendComplaintEmail(advocacyIssueId, citizenName || undefined);
+      if (result.success) {
+        alert(`✉️ Complaint dispatched successfully to ${result.recipient} via Resend!`);
+      } else {
+        alert(`⚠️ Failed to send complaint: ${result.result?.error || 'Resend API Key is not configured in this sandbox environment. Simulating dispatch logs.'}`);
+      }
+    } catch (err: any) {
+      alert("Failed to send complaint: " + err.message);
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -288,12 +306,11 @@ export default function TransparencyPage() {
                 Print / Save PDF
               </button>
               <button
-                onClick={() => {
-                  alert("✉️ Complaint dispatch simulated! Grievance sent to Bengaluru Ward Commissioner's office via Resend.");
-                }}
-                className="bg-civic-teal hover:bg-civic-teal-light text-civic-navy px-4 py-2 rounded-lg transition-all"
+                onClick={handleSendEmail}
+                disabled={isSending}
+                className="bg-civic-teal hover:bg-civic-teal-light disabled:bg-civic-border disabled:text-civic-text-muted text-civic-navy px-4 py-2 rounded-lg transition-all"
               >
-                Email Grievance
+                {isSending ? 'Sending...' : 'Email Grievance'}
               </button>
             </div>
 
