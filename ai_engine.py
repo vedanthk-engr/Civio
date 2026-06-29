@@ -68,16 +68,77 @@ from typing import Optional
 # ─────────────────────────────────────────────────────────────────────────────
 #  GROQ  (core LLM / vision)
 # ─────────────────────────────────────────────────────────────────────────────
-_client = None
-_MODEL  = 'meta-llama/llama-4-scout-17b-16e-instruct'
+class GeminiMockGroqClient:
+    class Chat:
+        class Completions:
+            def create(self, model, messages, response_format=None, **kwargs):
+                import google.generativeai as genai
+                api_key = os.environ.get("GEMINI_API_KEY")
+                if api_key:
+                    genai.configure(api_key=api_key)
+                else:
+                    print("[ai_engine] Warning: GEMINI_API_KEY is not set.")
+                
+                prompt = ""
+                images = []
+                
+                for msg in messages:
+                    content = msg.get("content")
+                    role = msg.get("role", "user")
+                    
+                    if isinstance(content, list):
+                        for item in content:
+                            if item.get("type") == "text":
+                                prompt += f"\n[{role}]: " + item.get("text", "")
+                            elif item.get("type") == "image_url":
+                                img_url = item.get("image_url", {}).get("url", "")
+                                if img_url.startswith("data:image"):
+                                    header, encoded = img_url.split(",", 1)
+                                    mime = header.split(";")[0].split(":")[1]
+                                    import base64
+                                    img_bytes = base64.b64decode(encoded)
+                                    images.append({"mime_type": mime, "data": img_bytes})
+                    else:
+                        prompt += f"\n[{role}]: " + str(content)
+                
+                generation_config = {}
+                if response_format and response_format.get("type") == "json_object":
+                    generation_config["response_mime_type"] = "application/json"
+                    
+                g_model = genai.GenerativeModel("gemini-2.0-flash")
+                
+                inputs = []
+                for img in images:
+                    inputs.append(img)
+                inputs.append(prompt)
+                
+                response = g_model.generate_content(
+                    inputs,
+                    generation_config=generation_config
+                )
+                
+                class Choice:
+                    class Message:
+                        def __init__(self, content):
+                            self.content = content
+                    def __init__(self, content):
+                        self.message = self.Message(content)
+                        
+                class ResponseMock:
+                    def __init__(self, content):
+                        self.choices = [Choice(content)]
+                        
+                return ResponseMock(response.text.strip())
+                
+        def __init__(self):
+            self.completions = self.Completions()
+            
+    def __init__(self, api_key=None):
+        self.chat = self.Chat()
 
-try:
-    from groq import Groq
-    if os.environ.get('GROQ_API_KEY'):
-        _client = Groq(api_key=os.environ['GROQ_API_KEY'])
-        print(f'[ai_engine] Groq [OK]  model={_MODEL}')
-except Exception as e:
-    print(f'[ai_engine] Groq unavailable: {e}')
+_client = GeminiMockGroqClient()
+_MODEL = 'gemini-2.0-flash'
+print('[ai_engine] GeminiMockGroqClient initialized successfully [OK] redirecting Meta-Llama to Gemini 2.0 Flash')
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  PILLOW + IMAGEHASH  (duplicate detection + EXIF analysis)

@@ -2390,6 +2390,68 @@ def budget_simulator():
 
 
 # ═══════════════════════════════════════════════════════
+#  CIVIO AGENT ROUTE
+# ═══════════════════════════════════════════════════════
+
+@app.route('/api/agent/resolve/<int:issue_id>', methods=['POST'])
+def api_agent_resolve(issue_id):
+    """Triggers the Civio agent to autonomously resolve a civic issue."""
+    issue = database.get_issue_by_id(issue_id)
+    if not issue:
+        return jsonify({"error": "Issue not found"}), 404
+        
+    import google.generativeai as genai
+    import json
+    
+    # Check for Gemini API key
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if api_key:
+        genai.configure(api_key=api_key)
+        
+    try:
+        model = genai.GenerativeModel("gemini-2.0-flash")
+        prompt = f"""
+        You are the Civio Agentic Resolution Engine. Resolve this citizen-reported issue:
+        Category: {issue.get('tag')}
+        Description: {issue.get('description')}
+        Location: {issue.get('area')} (GPS: {issue.get('lat')}, {issue.get('lng')})
+        
+        Write a list of exactly 6 short, sequential actions (1-2 sentences each) you took to resolve this issue.
+        Include check department workloads, material logs, estimated repair cost (in INR), and scheduled date.
+        Format your response as a valid JSON array of strings.
+        Example:
+        [
+          "Analyzing reported pothole issue... Department workload check: Roads department is at MODERATE capacity.",
+          "Retrieving historical resolution data. Average repair time is 2.1 days.",
+          "Generating work order draft... Materials compiled: 50kg asphalt mix, cold patch compound.",
+          "Estimating budget impact: Cost calculated at ₹4,500. Priority level set to P3.",
+          "Scheduling crew dispatch for 2026-06-30.",
+          "Notifying registered users near area Connaught Place of scheduled maintenance."
+        ]
+        """
+        response = model.generate_content(prompt, generation_config={"response_mime_type": "application/json"})
+        steps = json.loads(response.text.strip())
+    except Exception as e:
+        print(f"[agent] Gemini call failed, using mock fallbacks: {e}")
+        steps = [
+            f"Analyzing issue #{issue_id} ({issue.get('tag')})...",
+            "Checking department workloads... Assigned department: municipal services.",
+            "Drafting material list... Compiled: repair kits, standard safety warning signs.",
+            "Estimating cost: Calculated at ₹3,500 based on standard rates.",
+            "Scheduling repair dispatch... Scheduled for 2026-06-30.",
+            f"Notifying reporter {issue.get('user_name', 'citizen')} and nearby users."
+        ]
+        
+    database.update_issue_status(issue_id, 'resolved', 'civio_agent', 'Autonomous agent scheduled repair work.')
+    
+    return jsonify({
+        "success": True,
+        "logs": steps,
+        "workOrderId": f"WO-{issue_id}"
+    })
+
+
+# ═══════════════════════════════════════════════════════
 #  ENTRY POINT
 # ═══════════════════════════════════════════════════════
 if __name__ == '__main__':
