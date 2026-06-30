@@ -1,495 +1,416 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Civio · Sign In</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-* { margin:0; padding:0; box-sizing:border-box; }
-body {
-  font-family:'Inter', system-ui, -apple-system, sans-serif;
-  background:#f5f5f5;
-  color:#1a1a1a;
-  min-height:100vh;
-  display:flex; align-items:center; justify-content:center;
-  padding:20px;
-}
-
-.card {
-  background:#fff;
-  width:100%; max-width:440px;
-  padding:48px 36px 40px;
-  border-radius:24px;
-  box-shadow:0 8px 40px rgba(0,0,0,0.08);
-}
-
-.brand {
-  text-align:center;
-  margin-bottom:8px;
-}
-.brand h1 {
-  font-size:32px;
-  font-weight:700;
-  color:#1a1a1a;
-  letter-spacing:-0.5px;
-}
-.brand p {
-  font-size:15px;
-  color:#666;
-  margin-top:4px;
-  font-weight:400;
-}
-
-/* Toggle tabs - 3 tabs now */
-.toggle-row {
-  display:flex;
-  gap:6px;
-  margin:28px 0 24px;
-}
-.toggle-btn {
-  flex:1;
-  padding:12px 4px;
-  border:none;
-  border-radius:12px;
-  font-family:inherit;
-  font-size:13.5px;
-  font-weight:600;
-  cursor:pointer;
-  transition:all 0.2s;
-  background:#f0f0f0;
-  color:#444;
-  white-space:nowrap;
-}
-.toggle-btn:hover {
-  background:#e8e8e8;
-}
-.toggle-btn.active {
-  background:#1a8cff;
-  color:#fff;
-}
-.toggle-btn#tab-ngo.active {
-  background:#6B9473;
-}
-
-/* Form sections */
-.form-section {
-  display:none;
-}
-.form-section.active {
-  display:block;
-}
-
-/* Google button */
-.google-btn {
-  width:100%;
-  padding:14px;
-  background:#fff;
-  border:1px solid #e0e0e0;
-  border-radius:14px;
-  font-family:inherit;
-  font-size:15px;
-  font-weight:500;
-  color:#1a1a1a;
-  cursor:pointer;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:10px;
-  transition:all 0.2s;
-  margin-bottom:20px;
-}
-.google-btn:hover {
-  background:#fafafa;
-  border-color:#d0d0d0;
-}
-.google-btn svg {
-  width:20px; height:20px;
-}
-
-/* OR divider */
-.or-divider {
-  display:flex;
-  align-items:center;
-  gap:12px;
-  margin:0 0 20px;
-  color:#999;
-  font-size:13px;
-  font-weight:500;
-}
-.or-divider::before,
-.or-divider::after {
-  content:'';
-  flex:1;
-  height:1px;
-  background:#e8e8e8;
-}
-
-/* Inputs */
-.input-group {
-  margin-bottom:14px;
-}
-.input-group input {
-  width:100%;
-  padding:15px 18px;
-  background:#fff;
-  border:1px solid #e0e0e0;
-  border-radius:14px;
-  font-family:inherit;
-  font-size:15px;
-  color:#1a1a1a;
-  outline:none;
-  transition:border-color 0.2s, box-shadow 0.2s;
-}
-.input-group input::placeholder {
-  color:#aaa;
-  font-weight:400;
-}
-.input-group input:focus {
-  border-color:#1a8cff;
-  box-shadow:0 0 0 3px rgba(26,140,255,0.1);
-}
-
-/* Gov restricted banner */
-.gov-banner {
-  padding:12px 16px;
-  background:#f0f7ff;
-  border-radius:12px;
-  font-size:14px;
-  color:#1a8cff;
-  font-weight:500;
-  margin-bottom:16px;
-}
-
-/* NGO restricted banner */
-.ngo-banner {
-  padding:12px 16px;
-  background:#E3EFE3;
-  border-radius:12px;
-  font-size:14px;
-  color:#4F7158;
-  font-weight:500;
-  margin-bottom:16px;
-}
-
-/* Submit button */
-.submit-btn {
-  width:100%;
-  padding:16px;
-  background:#1a8cff;
-  border:none;
-  border-radius:14px;
-  font-family:inherit;
-  font-size:16px;
-  font-weight:600;
-  color:#fff;
-  cursor:pointer;
-  transition:all 0.2s;
-  margin-top:6px;
-}
-.submit-btn:hover {
-  background:#1470d9;
-  transform:translateY(-1px);
-  box-shadow:0 4px 16px rgba(26,140,255,0.3);
-}
-.submit-btn:active {
-  transform:translateY(0);
-}
-
-/* NGO-specific submit button (sage colour) */
-.submit-btn.ngo {
-  background:#6B9473;
-}
-.submit-btn.ngo:hover {
-  background:#4F7158;
-  box-shadow:0 4px 16px rgba(107,148,115,0.3);
-}
-
-/* Footer text */
-.footer-text {
-  text-align:center;
-  margin-top:20px;
-  font-size:13px;
-  color:#888;
-}
-
-/* Error message */
-.error-msg {
-  background:#fff0f0;
-  border:1px solid #ffcccc;
-  color:#d32f2f;
-  padding:12px 16px;
-  border-radius:12px;
-  font-size:13px;
-  margin-bottom:16px;
-  display:none;
-}
-.error-msg.show {
-  display:block;
-}
-
-/* Loading overlay */
-.loading-overlay {
-  position:fixed; inset:0; z-index:999;
-  background:rgba(255,255,255,0.9);
-  display:none; align-items:center; justify-content:center;
-  flex-direction:column; gap:16px;
-}
-.loading-overlay.show {
-  display:flex;
-}
-.spinner {
-  width:40px; height:40px;
-  border:3px solid rgba(26,140,255,0.2);
-  border-top-color:#1a8cff;
-  border-radius:50%;
-  animation:spin 1s linear infinite;
-}
-@keyframes spin { to { transform:rotate(360deg); } }
-.loading-text {
-  font-family:'Inter', sans-serif;
-  font-size:14px; color:#1a8cff; font-weight:500;
-}
-
-/* Demo hint */
-.demo-hint {
-  margin-top:18px;
-  padding:14px 16px;
-  background:#f8f9fa;
-  border:1px solid #e8e8e8;
-  border-radius:12px;
-  font-size:12px;
-  color:#666;
-  line-height:1.7;
-}
-.demo-hint strong {
-  color:#1a8cff;
-  font-weight:600;
-  display:block;
-  margin-bottom:6px;
-  font-size:11px;
-  text-transform:uppercase;
-  letter-spacing:1px;
-}
-.demo-hint code {
-  background:#1a1a1a;
-  color:#fff;
-  padding:2px 8px;
-  border-radius:4px;
-  font-size:12px;
-  font-family:'SF Mono', monospace;
-}
-
-/* Responsive */
-@media (max-width:480px) {
-  .card { padding:36px 24px 32px; border-radius:20px; }
-  .brand h1 { font-size:28px; }
-  .toggle-btn { font-size:12.5px; padding:11px 2px; }
-}
-@media (max-width:380px){
-  .card { padding:28px 18px 24px; }
-  .brand h1 { font-size:24px; }
-  .toggle-btn { font-size:12px; }
-}
-</style>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Civio - Sign In</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#111316",
+                        "primary-fixed": "#ffdbcb",
+                        "on-tertiary-container": "#003233",
+                        "background": "#111316",
+                        "surface-variant": "#333538",
+                        "on-surface": "#e2e2e6",
+                        "surface-dim": "#111316",
+                        "secondary-container": "#c3841e",
+                        "tertiary-fixed-dim": "#5cd8da",
+                        "primary": "#ffb692",
+                        "on-secondary-fixed": "#2a1800",
+                        "tertiary-container": "#00a4a6",
+                        "on-surface-variant": "#dbc1b6",
+                        "on-secondary": "#462b00",
+                        "on-primary-fixed": "#341100",
+                        "surface-container-high": "#282a2d",
+                        "on-primary-fixed-variant": "#783104",
+                        "inverse-on-surface": "#2f3034",
+                        "error": "#ffb4ab",
+                        "inverse-surface": "#e2e2e6",
+                        "surface-container": "#1e2023",
+                        "on-tertiary-fixed-variant": "#004f50",
+                        "tertiary": "#5cd8da",
+                        "surface-bright": "#37393d",
+                        "outline-variant": "#55433b",
+                        "secondary": "#ffb956",
+                        "surface-container-highest": "#333538",
+                        "on-primary-container": "#4f1d00",
+                        "on-tertiary-fixed": "#002020",
+                        "primary-fixed-dim": "#ffb692",
+                        "secondary-fixed-dim": "#ffb956",
+                        "outline": "#a38c82",
+                        "on-error": "#690005",
+                        "on-primary": "#562000",
+                        "inverse-primary": "#96481b",
+                        "on-tertiary": "#003738",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#643f00",
+                        "surface-container-lowest": "#0c0e11",
+                        "on-background": "#e2e2e6",
+                        "on-secondary-container": "#3d2500",
+                        "error-container": "#93000a",
+                        "secondary-fixed": "#ffddb5",
+                        "surface-tint": "#ffb692",
+                        "primary-container": "#d87b4a",
+                        "surface-container-low": "#1a1c1f",
+                        "tertiary-fixed": "#7cf5f7"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px",
+                        "card": "20px",
+                        "input": "12px"
+                    },
+                    "spacing": {
+                        "margin": "24px",
+                        "unit": "4px",
+                        "container-padding": "20px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "data-lg": ["JetBrains Mono"],
+                        "data-md": ["JetBrains Mono"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "body-sm": ["Plus Jakarta Sans"],
+                        "label-caps": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "data-lg": ["20px", { "lineHeight": "28px", "fontWeight": "500" }],
+                        "data-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["18px", { "lineHeight": "24px", "fontWeight": "500" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "fontWeight": "500" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .fill-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+        
+        body {
+            background-color: #15171A;
+        }
+        .bg-surface-card {
+            background-color: #1C1F22;
+        }
+        .bg-surface-interaction {
+            background-color: #2C2F34;
+        }
+        .btn-gradient {
+            background: linear-gradient(90deg, #d87b4a 0%, #ffb956 100%);
+        }
+    </style>
 </head>
-<body>
+<body class="text-on-surface font-body-lg antialiased flex items-center justify-center min-h-screen">
 
-<div class="loading-overlay" id="loading-overlay">
-  <div class="spinner"></div>
-  <div class="loading-text">Authenticating...</div>
-</div>
+    <!-- Loading overlay -->
+    <div class="fixed inset-0 bg-background/90 z-[999] flex flex-col items-center justify-center gap-4 hidden" id="loading-overlay">
+        <div class="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+        <div class="font-data-md text-primary">Authenticating...</div>
+    </div>
 
-<div class="card">
-  <div class="brand">
-    <h1>Civio</h1>
-    <p>Community Reporting Platform</p>
-  </div>
+    <!-- Ambient background -->
+    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden flex justify-center items-center opacity-20">
+        <div class="w-[800px] h-[800px] rounded-full bg-primary-container/10 blur-[150px] mix-blend-screen opacity-10 translate-y-1/4"></div>
+    </div>
 
-  <!-- Toggle - 3 tabs -->
-  <div class="toggle-row">
-    <button class="toggle-btn active" id="tab-citizen" onclick="switchTab('citizen')">Citizen</button>
-    <button class="toggle-btn" id="tab-gov" onclick="switchTab('gov')">Government</button>
-    <button class="toggle-btn" id="tab-ngo" onclick="switchTab('ngo')">NGO Partner</button>
-  </div>
+    <!-- Main Sign In Card -->
+    <main class="relative z-10 w-full max-w-md px-margin md:px-0">
+        <div class="bg-surface-card rounded-[20px] p-[40px] border border-white/10 shadow-2xl flex flex-col gap-[28px]">
+            <!-- Header Section -->
+            <div class="flex flex-col items-center gap-[12px]">
+                <div class="w-12 h-12 bg-primary-container/20 rounded-full flex items-center justify-center mb-1">
+                    <span class="material-symbols-outlined text-primary fill-icon" style="font-size: 28px;">blur_on</span>
+                </div>
+                <h1 class="font-headline-lg text-headline-lg text-on-surface text-center">Sign in to Civio</h1>
+                <p class="font-body-sm text-body-sm text-on-surface-variant text-center">Community Reporting Platform</p>
+            </div>
 
-  <div class="error-msg" id="error-msg"></div>
+            <!-- Role Selector Tabs -->
+            <div class="bg-surface-interaction rounded-full p-1 flex justify-between relative overflow-hidden">
+                <button id="tab-citizen" onclick="switchTab('citizen')" class="relative z-10 flex-1 py-2 text-center rounded-full bg-surface-card shadow-sm font-label-caps text-label-caps text-primary border border-white/5 transition-all duration-200">
+                    Citizen
+                </button>
+                <button id="tab-gov" onclick="switchTab('gov')" class="relative z-10 flex-1 py-2 text-center rounded-full hover:bg-surface-card/30 transition-all duration-200 font-label-caps text-label-caps text-on-surface-variant hover:text-on-surface">
+                    Government
+                </button>
+                <button id="tab-ngo" onclick="switchTab('ngo')" class="relative z-10 flex-1 py-2 text-center rounded-full hover:bg-surface-card/30 transition-all duration-200 font-label-caps text-label-caps text-on-surface-variant hover:text-on-surface">
+                    NGO Partner
+                </button>
+            </div>
 
-  <!-- Citizen Form -->
-  <div class="form-section active" id="form-citizen">
-    <button class="google-btn" type="button" onclick="googleLogin()">
-      <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-      Continue with Google
-    </button>
+            <!-- Error Banner -->
+            <div class="bg-error-container/20 border border-error/30 text-error rounded-[12px] p-3 text-body-sm font-body-sm text-center hidden" id="error-msg"></div>
 
-    <div class="or-divider"><span>OR</span></div>
+            <!-- Citizen Form -->
+            <div class="form-section active flex flex-col gap-[20px]" id="form-citizen">
+                <button class="w-full py-[12px] bg-white text-surface font-headline-md text-headline-md rounded-full shadow hover:bg-neutral-100 transition-colors flex items-center justify-center gap-3" type="button" onclick="googleLogin()">
+                    <svg class="w-[20px] h-[20px]" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Continue with Google
+                </button>
 
-    <form method="POST" action="/login" id="citizen-form">
-      <div class="input-group">
-        <input type="text" name="name" id="citizen-name" placeholder="Your name" required autocomplete="username"/>
-      </div>
-      <div class="input-group">
-        <select name="city" required style="width:100%; padding:15px 18px; border:1px solid #e0e0e0; border-radius:14px; font-family:inherit; font-size:15px; color:#1a1a1a; outline:none; background:#fff; cursor:pointer; margin-bottom: 2px;">
-          <option value="bengaluru">Bengaluru</option>
-          <option value="delhi">Delhi</option>
-          <option value="chennai">Chennai</option>
-          <option value="mumbai">Mumbai</option>
-          <option value="hyderabad">Hyderabad</option>
-        </select>
-      </div>
-      <!-- Citizen leaves pin blank -->
-      <input type="hidden" name="pin" value=""/>
-      <button type="submit" class="submit-btn">Log in</button>
-    </form>
-  </div>
+                <div class="flex items-center gap-[12px] text-on-surface-variant/40 font-label-caps text-label-caps justify-center">
+                    <div class="h-px bg-white/10 flex-1"></div>
+                    <span>OR</span>
+                    <div class="h-px bg-white/10 flex-1"></div>
+                </div>
 
-  <!-- Gov Form -->
-  <div class="form-section" id="form-gov">
-    <div class="gov-banner">Restricted Government Access</div>
+                <form class="flex flex-col gap-[20px]" method="POST" action="/login" id="citizen-form-el">
+                    <div class="flex flex-col gap-[8px]">
+                        <label class="font-label-caps text-label-caps text-on-surface-variant ml-1" for="citizen-name">Your Name</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[20px]">person</span>
+                            <input class="w-full bg-surface-interaction border-none rounded-[12px] py-[12px] pl-[40px] pr-[16px] text-on-surface font-data-md placeholder:text-on-surface-variant/30 focus:ring-1 focus:ring-primary focus:bg-surface-card transition-colors" id="citizen-name" name="name" placeholder="Enter your username" required autocomplete="username" type="text"/>
+                        </div>
+                    </div>
 
-    <form method="POST" action="/login" id="gov-form">
-      <div class="input-group">
-        <input type="text" name="name" id="gov-username" placeholder="Government Username" required autocomplete="username"/>
-      </div>
-      <div class="input-group">
-        <select name="city" required style="width:100%; padding:15px 18px; border:1px solid #e0e0e0; border-radius:14px; font-family:inherit; font-size:15px; color:#1a1a1a; outline:none; background:#fff; cursor:pointer; margin-bottom: 2px;">
-          <option value="bengaluru">Bengaluru</option>
-          <option value="delhi">Delhi</option>
-          <option value="chennai">Chennai</option>
-          <option value="mumbai">Mumbai</option>
-          <option value="hyderabad">Hyderabad</option>
-        </select>
-      </div>
-      <div class="input-group">
-        <input type="password" name="pin" id="gov-pin" placeholder="Security PIN" required maxlength="6" autocomplete="off"/>
-      </div>
-      <button type="submit" class="submit-btn">Enter Portal</button>
-    </form>
-  </div>
+                    <div class="flex flex-col gap-[8px]">
+                        <label class="font-label-caps text-label-caps text-on-surface-variant ml-1" for="citizen-city">Simulation City</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[20px]">location_on</span>
+                            <select class="w-full bg-surface-interaction border-none rounded-[12px] py-[12px] pl-[40px] pr-[36px] text-on-surface font-body-sm focus:ring-1 focus:ring-primary focus:bg-surface-card transition-colors cursor-pointer appearance-none" id="citizen-city" name="city" required>
+                                <option value="bengaluru">Bengaluru</option>
+                                <option value="delhi">Delhi</option>
+                                <option value="chennai">Chennai</option>
+                                <option value="mumbai">Mumbai</option>
+                                <option value="hyderabad">Hyderabad</option>
+                            </select>
+                        </div>
+                    </div>
 
-  <!-- NGO Form -->
-  <div class="form-section" id="form-ngo">
-    <div class="ngo-banner">NGO Partner Access</div>
+                    <input type="hidden" name="pin" value=""/>
 
-    <form method="POST" action="/login" id="ngo-form">
-      <div class="input-group">
-        <input type="text" name="name" id="ngo-username" placeholder="NGO Username" required autocomplete="username"/>
-      </div>
-      <div class="input-group">
-        <select name="city" required style="width:100%; padding:15px 18px; border:1px solid #e0e0e0; border-radius:14px; font-family:inherit; font-size:15px; color:#1a1a1a; outline:none; background:#fff; cursor:pointer; margin-bottom: 2px;">
-          <option value="bengaluru">Bengaluru</option>
-          <option value="delhi">Delhi</option>
-          <option value="chennai">Chennai</option>
-          <option value="mumbai">Mumbai</option>
-          <option value="hyderabad">Hyderabad</option>
-        </select>
-      </div>
-      <div class="input-group">
-        <input type="password" name="pin" id="ngo-pin" placeholder="Security PIN" required maxlength="6" autocomplete="off"/>
-      </div>
-      <button type="submit" class="submit-btn ngo">Enter NGO Portal</button>
-    </form>
-  </div>
+                    <button class="w-full mt-[8px] btn-gradient text-on-primary-container font-headline-md text-headline-md rounded-full py-[14px] px-[24px] shadow-[0_4px_14px_0_rgba(216,123,74,0.3)] hover:shadow-[0_6px_20px_rgba(216,123,74,0.2)] hover:scale-[0.98] transition-all flex items-center justify-center gap-2" type="submit">
+                        Initialize Session
+                        <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+                    </button>
+                </form>
+            </div>
 
-  <p class="footer-text">Secure access to Civio</p>
+            <!-- Gov Form -->
+            <div class="form-section flex-col gap-[20px] hidden" id="form-gov">
+                <div class="bg-primary/10 border border-primary/20 text-primary rounded-[12px] p-3 text-body-sm font-body-sm text-center font-medium">
+                    Restricted Government Access
+                </div>
 
-  <div class="demo-hint">
-    <strong>▼ Demo Accounts</strong>
-    Gov officers: <code>gov_rmc</code>, <code>gov_water</code>, <code>gov_electricity</code>, <code>gov_traffic</code><br>
-    NGO partners: <code>ngo_sanitation</code>, <code>ngo_water</code>, <code>ngo_civic</code>, <code>ngo_power</code><br>
-    PIN: <code>0000</code> for all
-  </div>
-</div>
+                <form class="flex flex-col gap-[20px]" method="POST" action="/login" id="gov-form-el">
+                    <div class="flex flex-col gap-[8px]">
+                        <label class="font-label-caps text-label-caps text-on-surface-variant ml-1" for="gov-username">Officer ID</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[20px]">badge</span>
+                            <input class="w-full bg-surface-interaction border-none rounded-[12px] py-[12px] pl-[40px] pr-[16px] text-on-surface font-data-md placeholder:text-on-surface-variant/30 focus:ring-1 focus:ring-primary focus:bg-surface-card transition-colors" id="gov-username" name="name" placeholder="gov_username" required autocomplete="username" type="text"/>
+                        </div>
+                    </div>
 
-<script>
-window.addEventListener('DOMContentLoaded', () => {
-  const url = new URL(window.location.href);
-  const error = url.searchParams.get('error');
-  const govAttempt = url.searchParams.get('gov_attempt');
-  const ngoAttempt = url.searchParams.get('ngo_attempt');
+                    <div class="flex flex-col gap-[8px]">
+                        <label class="font-label-caps text-label-caps text-on-surface-variant ml-1" for="gov-city">Duty City</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[20px]">location_on</span>
+                            <select class="w-full bg-surface-interaction border-none rounded-[12px] py-[12px] pl-[40px] pr-[36px] text-on-surface font-body-sm focus:ring-1 focus:ring-primary focus:bg-surface-card transition-colors cursor-pointer appearance-none" id="gov-city" name="city" required>
+                                <option value="bengaluru">Bengaluru</option>
+                                <option value="delhi">Delhi</option>
+                                <option value="chennai">Chennai</option>
+                                <option value="mumbai">Mumbai</option>
+                                <option value="hyderabad">Hyderabad</option>
+                            </select>
+                        </div>
+                    </div>
 
-  if (error) {
-    document.getElementById('error-msg').textContent = decodeURIComponent(error);
-    document.getElementById('error-msg').classList.add('show');
-  }
+                    <div class="flex flex-col gap-[8px]">
+                        <label class="font-label-caps text-label-caps text-on-surface-variant ml-1" for="gov-pin">Security PIN</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[20px]">lock</span>
+                            <input class="w-full bg-surface-interaction border-none rounded-[12px] py-[12px] pl-[40px] pr-[16px] text-on-surface font-data-md placeholder:text-on-surface-variant/30 focus:ring-1 focus:ring-primary focus:bg-surface-card transition-colors" id="gov-pin" name="pin" placeholder="••••" required maxlength="6" autocomplete="off" type="password"/>
+                        </div>
+                    </div>
 
-  if (govAttempt) {
-    switchTab('gov');
-    document.getElementById('gov-username').value = govAttempt;
-    document.getElementById('gov-pin').focus();
-  }
+                    <button class="w-full mt-[8px] btn-gradient text-on-primary-container font-headline-md text-headline-md rounded-full py-[14px] px-[24px] shadow-[0_4px_14px_0_rgba(216,123,74,0.3)] hover:shadow-[0_6px_20px_rgba(216,123,74,0.2)] hover:scale-[0.98] transition-all flex items-center justify-center gap-2" type="submit">
+                        Enter Gov Portal
+                        <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+                    </button>
+                </form>
+            </div>
 
-  if (ngoAttempt) {
-    switchTab('ngo');
-    document.getElementById('ngo-username').value = ngoAttempt;
-    document.getElementById('ngo-pin').focus();
-  }
-});
+            <!-- NGO Form -->
+            <div class="form-section flex-col gap-[20px] hidden" id="form-ngo">
+                <div class="bg-tertiary/10 border border-tertiary/20 text-tertiary rounded-[12px] p-3 text-body-sm font-body-sm text-center font-medium">
+                    NGO Partner Access
+                </div>
 
-function switchTab(tab) {
-  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
-  document.getElementById('tab-' + tab).classList.add('active');
-  document.getElementById('form-' + tab).classList.add('active');
-  document.getElementById('error-msg').classList.remove('show');
-}
+                <form class="flex flex-col gap-[20px]" method="POST" action="/login" id="ngo-form-el">
+                    <div class="flex flex-col gap-[8px]">
+                        <label class="font-label-caps text-label-caps text-on-surface-variant ml-1" for="ngo-username">NGO Username</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[20px]">handshake</span>
+                            <input class="w-full bg-surface-interaction border-none rounded-[12px] py-[12px] pl-[40px] pr-[16px] text-on-surface font-data-md placeholder:text-on-surface-variant/30 focus:ring-1 focus:ring-primary focus:bg-surface-card transition-colors" id="ngo-username" name="name" placeholder="ngo_username" required autocomplete="username" type="text"/>
+                        </div>
+                    </div>
 
-// Show loading spinner on form submit
-document.getElementById('citizen-form').addEventListener('submit', function() {
-  document.getElementById('loading-overlay').classList.add('show');
-});
+                    <div class="flex flex-col gap-[8px]">
+                        <label class="font-label-caps text-label-caps text-on-surface-variant ml-1" for="ngo-city">Coverage Area</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[20px]">location_on</span>
+                            <select class="w-full bg-surface-interaction border-none rounded-[12px] py-[12px] pl-[40px] pr-[36px] text-on-surface font-body-sm focus:ring-1 focus:ring-primary focus:bg-surface-card transition-colors cursor-pointer appearance-none" id="ngo-city" name="city" required>
+                                <option value="bengaluru">Bengaluru</option>
+                                <option value="delhi">Delhi</option>
+                                <option value="chennai">Chennai</option>
+                                <option value="mumbai">Mumbai</option>
+                                <option value="hyderabad">Hyderabad</option>
+                            </select>
+                        </div>
+                    </div>
 
-document.getElementById('gov-form').addEventListener('submit', function(e) {
-  const username = document.getElementById('gov-username').value.trim().toLowerCase();
-  const pin = document.getElementById('gov-pin').value.trim();
+                    <div class="flex flex-col gap-[8px]">
+                        <label class="font-label-caps text-label-caps text-on-surface-variant ml-1" for="ngo-pin">Security PIN</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[20px]">lock</span>
+                            <input class="w-full bg-surface-interaction border-none rounded-[12px] py-[12px] pl-[40px] pr-[16px] text-on-surface font-data-md placeholder:text-on-surface-variant/30 focus:ring-1 focus:ring-primary focus:bg-surface-card transition-colors" id="ngo-pin" name="pin" placeholder="••••" required maxlength="6" autocomplete="off" type="password"/>
+                        </div>
+                    </div>
 
-  const validGovAccounts = ['gov_rmc', 'gov_water', 'gov_electricity', 'gov_traffic', 'gov_rmkc'];
-  if (!validGovAccounts.includes(username)) {
-    e.preventDefault();
-    document.getElementById('error-msg').textContent = 'Unknown government account. Use demo accounts listed below.';
-    document.getElementById('error-msg').classList.add('show');
-    return;
-  }
-  if (!pin) {
-    e.preventDefault();
-    document.getElementById('error-msg').textContent = 'PIN is required for government accounts.';
-    document.getElementById('error-msg').classList.add('show');
-    return;
-  }
+                    <button class="w-full mt-[8px] btn-gradient text-on-primary-container font-headline-md text-headline-md rounded-full py-[14px] px-[24px] shadow-[0_4px_14px_0_rgba(216,123,74,0.3)] hover:shadow-[0_6px_20px_rgba(216,123,74,0.2)] hover:scale-[0.98] transition-all flex items-center justify-center gap-2" type="submit">
+                        Enter Partner Portal
+                        <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+                    </button>
+                </form>
+            </div>
 
-  document.getElementById('loading-overlay').classList.add('show');
-});
+            <!-- Demo hints block -->
+            <div class="p-4 bg-surface-interaction/50 border border-white/5 rounded-[12px] text-[12px] text-on-surface-variant flex flex-col gap-2">
+                <div class="font-label-caps text-primary text-[10px] tracking-wider uppercase font-bold">▼ Demo Accounts</div>
+                <div class="flex flex-col gap-1.5 font-body-sm opacity-90 leading-tight">
+                    <div>Gov officers: <code class="bg-[#111316] text-primary px-1.5 py-0.5 rounded font-mono text-[11px]">gov_rmc</code>, <code class="bg-[#111316] text-primary px-1.5 py-0.5 rounded font-mono text-[11px]">gov_water</code>, <code class="bg-[#111316] text-primary px-1.5 py-0.5 rounded font-mono text-[11px]">gov_electricity</code></div>
+                    <div>NGO partners: <code class="bg-[#111316] text-tertiary px-1.5 py-0.5 rounded font-mono text-[11px]">ngo_sanitation</code>, <code class="bg-[#111316] text-tertiary px-1.5 py-0.5 rounded font-mono text-[11px]">ngo_water</code></div>
+                    <div>Security PIN: <code class="bg-[#111316] text-on-surface px-1.5 py-0.5 rounded font-mono text-[11px]">0000</code> for all accounts</div>
+                </div>
+            </div>
 
-document.getElementById('ngo-form').addEventListener('submit', function(e) {
-  const username = document.getElementById('ngo-username').value.trim().toLowerCase();
-  const pin = document.getElementById('ngo-pin').value.trim();
+        </div>
+    </main>
 
-  const validNgoAccounts = ['ngo_sanitation', 'ngo_water', 'ngo_civic', 'ngo_power'];
-  if (!validNgoAccounts.includes(username)) {
-    e.preventDefault();
-    document.getElementById('error-msg').textContent = 'Unknown NGO account. Use demo accounts listed below.';
-    document.getElementById('error-msg').classList.add('show');
-    return;
-  }
-  if (!pin) {
-    e.preventDefault();
-    document.getElementById('error-msg').textContent = 'PIN is required for NGO accounts.';
-    document.getElementById('error-msg').classList.add('show');
-    return;
-  }
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const url = new URL(window.location.href);
+            const error = url.searchParams.get('error');
+            const govAttempt = url.searchParams.get('gov_attempt');
+            const ngoAttempt = url.searchParams.get('ngo_attempt');
 
-  document.getElementById('loading-overlay').classList.add('show');
-});
+            if (error) {
+                const errBox = document.getElementById('error-msg');
+                errBox.textContent = decodeURIComponent(error);
+                errBox.classList.remove('hidden');
+            }
 
-// ── Google OAuth ──────────────────────────────────────────────────────────
-// Redirects to /auth/google which starts the real OAuth 2.0 flow.
-// Requires GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET env vars on the server.
-function googleLogin() {
-  document.getElementById('loading-overlay').classList.add('show');
-  window.location.href = '/auth/google';
-}
-</script>
+            if (govAttempt) {
+                switchTab('gov');
+                document.getElementById('gov-username').value = govAttempt;
+                document.getElementById('gov-pin').focus();
+            }
 
+            if (ngoAttempt) {
+                switchTab('ngo');
+                document.getElementById('ngo-username').value = ngoAttempt;
+                document.getElementById('ngo-pin').focus();
+            }
+        });
+
+        function switchTab(tab) {
+            const tabs = ['citizen', 'gov', 'ngo'];
+            tabs.forEach(t => {
+                const tabBtn = document.getElementById('tab-' + t);
+                const formSection = document.getElementById('form-' + t);
+                if (t === tab) {
+                    tabBtn.classList.add('bg-surface-card', 'text-primary', 'border', 'border-white/5', 'shadow-sm');
+                    tabBtn.classList.remove('text-on-surface-variant', 'hover:bg-surface-card/30');
+                    formSection.classList.remove('hidden');
+                    formSection.classList.add('flex');
+                } else {
+                    tabBtn.classList.remove('bg-surface-card', 'text-primary', 'border', 'border-white/5', 'shadow-sm');
+                    tabBtn.classList.add('text-on-surface-variant', 'hover:bg-surface-card/30');
+                    formSection.classList.add('hidden');
+                    formSection.classList.remove('flex');
+                }
+            });
+            document.getElementById('error-msg').classList.add('hidden');
+        }
+
+        document.getElementById('citizen-form-el').addEventListener('submit', function() {
+            document.getElementById('loading-overlay').classList.remove('hidden');
+        });
+
+        document.getElementById('gov-form-el').addEventListener('submit', function(e) {
+            const username = document.getElementById('gov-username').value.trim().toLowerCase();
+            const pin = document.getElementById('gov-pin').value.trim();
+
+            const validGovAccounts = ['gov_rmc', 'gov_water', 'gov_electricity', 'gov_traffic', 'gov_rmkc'];
+            if (!validGovAccounts.includes(username)) {
+                e.preventDefault();
+                const errBox = document.getElementById('error-msg');
+                errBox.textContent = 'Unknown government account. Use demo accounts listed below.';
+                errBox.classList.remove('hidden');
+                return;
+            }
+            if (!pin) {
+                e.preventDefault();
+                const errBox = document.getElementById('error-msg');
+                errBox.textContent = 'PIN is required for government accounts.';
+                errBox.classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('loading-overlay').classList.remove('hidden');
+        });
+
+        document.getElementById('ngo-form-el').addEventListener('submit', function(e) {
+            const username = document.getElementById('ngo-username').value.trim().toLowerCase();
+            const pin = document.getElementById('ngo-pin').value.trim();
+
+            const validNgoAccounts = ['ngo_sanitation', 'ngo_water', 'ngo_civic', 'ngo_power'];
+            if (!validNgoAccounts.includes(username)) {
+                e.preventDefault();
+                const errBox = document.getElementById('error-msg');
+                errBox.textContent = 'Unknown NGO account. Use demo accounts listed below.';
+                errBox.classList.remove('hidden');
+                return;
+            }
+            if (!pin) {
+                e.preventDefault();
+                const errBox = document.getElementById('error-msg');
+                errBox.textContent = 'PIN is required for NGO accounts.';
+                errBox.classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('loading-overlay').classList.remove('hidden');
+        });
+
+        function googleLogin() {
+            document.getElementById('loading-overlay').classList.remove('hidden');
+            window.location.href = '/auth/google';
+        }
+    </script>
 </body>
 </html>

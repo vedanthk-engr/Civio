@@ -6,29 +6,29 @@
 <meta name="theme-color" content="#0a0d0e">
 <title>Civio Monitor · Delhi</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  /* FR24-accurate palette (sampled from real Flightradar24 UI) */
-  --bg:        #1c1f25;   /* main backdrop, slightly warm dark */
-  --bg-2:      #232730;   /* primary panels */
-  --bg-3:      #2a2f3a;   /* hover/elevated */
-  --bg-4:      #353a47;   /* active selection */
-  --accent:    #f8c023;   /* FR24 brand yellow */
-  --accent-2:  #ffd34d;
-  --accent-dim:rgba(248,192,35,0.13);
-  --info:      #4a90e2;
-  --info-dim:  rgba(74,144,226,0.16);
-  --red:       #e74c3c;   --red-dim:rgba(231,76,60,0.14);
-  --green:     #27ae60;   --green-dim:rgba(39,174,96,0.14);
-  --amber:     #f39c12;   --amber-dim:rgba(243,156,18,0.14);
-  --border:    #2f3441;   --border-mid:#3d4352;
-  --text:      #ffffff;   --text-2:#b8bcc6;
-  --muted:     #8d9099;   --faint:#5e636c;
+  /* Warm Logistics palette */
+  --bg:        #111316;   /* main backdrop, slightly warm dark */
+  --bg-2:      #1C1F22;   /* primary panels */
+  --bg-3:      #2C2F34;   /* hover/elevated */
+  --bg-4:      #333538;   /* active selection */
+  --accent:    #ffb692;   /* terracotta brand orange */
+  --accent-2:  #ffb956;
+  --accent-dim:rgba(255, 182, 146, 0.13);
+  --info:      #00a4a6;
+  --info-dim:  rgba(0, 164, 166, 0.16);
+  --red:       #ffb4ab;   --red-dim:rgba(255, 180, 171, 0.14);
+  --green:     #5cd8da;   --green-dim:rgba(92, 216, 218, 0.14);
+  --amber:     #ffb956;   --amber-dim:rgba(255, 185, 86, 0.14);
+  --border:    rgba(255, 255, 255, 0.1);   --border-mid:rgba(255, 255, 255, 0.15);
+  --text:      #e2e2e6;   --text-2:#dbc1b6;
+  --muted:     #dbc1b6;   --faint:#5e636c;
 }
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter', system-ui, sans-serif; font-size:13px; line-height:1.4; color:var(--text); background:var(--bg); }
+html, body { width:100%; height:100%; overflow:hidden; font-family:'Plus Jakarta Sans', 'Inter', system-ui, sans-serif; font-size:13px; line-height:1.4; color:var(--text); background:var(--bg); }
 button, input, select, textarea { font-family:inherit; }
 
 /* Map */
@@ -1014,7 +1014,7 @@ input, textarea, select { font-size:16px; }
 <!-- Topbar -->
 <div class="topbar">
   <div class="tb-left">
-    <a href="https://areapulse-cam.onrender.com" target="_blank" class="tb-action ar" title="AR Scanner">
+    <a href="/scan" class="tb-action ar" title="AR Scanner">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 8V6a2 2 0 0 1 2-2h2M22 8V6a2 2 0 0 0-2-2h-2M2 16v2a2 2 0 0 0 2 2h2M22 16v2a2 2 0 0 1-2 2h-2"/><circle cx="12" cy="12" r="3"/></svg>
       <span>AR SCAN</span>
     </a>
@@ -2285,7 +2285,7 @@ function _initMobileChrome(){
     } else if (act === 'reports') {
       openOnly('right-panel');
     } else if (act === 'ar') {
-      window.open('https://areapulse-cam.onrender.com', '_blank');
+      window.location.href = '/scan';
     } else if (act === 'whatsapp') {
       window.location.href = `https://wa.me/${wa_num}?text=${wa_join}`;
     }

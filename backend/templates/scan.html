@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Civio - Camera Scan</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface": "#111316",
+                        "background": "#111316",
+                        "primary": "#ffb692",
+                        "secondary": "#ffb956",
+                        "tertiary": "#5cd8da",
+                        "error": "#ffb4ab",
+                        "surface-card": "#1C1F22",
+                        "surface-interaction": "#2C2F34"
+                    },
+                    fontFamily: {
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "data-md": ["JetBrains Mono"],
+                        "label-caps": ["JetBrains Mono"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #0c0e11;
+        }
+        /* Custom pulsing animation for the targeting crosshair */
+        @keyframes scan-pulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 0.4; }
+        }
+        .pulsing-crosshair {
+            animation: scan-pulse 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="text-on-surface font-body-lg antialiased h-screen overflow-hidden flex flex-col relative">
+
+    <!-- Live Camera Stream -->
+    <div class="absolute inset-0 z-0 bg-black">
+        <video id="webcam" autoplay playsinline class="w-full h-full object-cover"></video>
+        <canvas id="photo-canvas" class="hidden"></canvas>
+    </div>
+
+    <!-- Scanner Overlay UI -->
+    <div class="absolute inset-0 z-10 flex flex-col justify-between pointer-events-none p-margin">
+        
+        <!-- Top Controls (Floating HUD style) -->
+        <header class="flex justify-between items-center w-full pointer-events-auto">
+            <a href="/" class="w-10 h-10 rounded-full bg-[#111316]/75 backdrop-blur-md border border-white/10 flex items-center justify-center text-on-surface hover:bg-surface-interaction transition-colors">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </a>
+            <div class="bg-[#111316]/75 backdrop-blur-md border border-white/10 px-4 py-1.5 rounded-full flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
+                <span class="font-label-caps text-label-caps text-on-surface text-[11px] tracking-wider uppercase">Live AR Camera</span>
+            </div>
+            <button id="toggle-flash" class="w-10 h-10 rounded-full bg-[#111316]/75 backdrop-blur-md border border-white/10 flex items-center justify-center text-on-surface hover:bg-surface-interaction transition-colors">
+                <span class="material-symbols-outlined">flashlight_off</span>
+            </button>
+        </header>
+
+        <!-- Centered targeting crosshairs -->
+        <div class="flex-1 flex items-center justify-center pulsing-crosshair">
+            <div class="w-48 h-48 rounded-full border-2 border-dashed border-primary/50 flex items-center justify-center relative">
+                <div class="w-4 h-4 border-t-2 border-l-2 border-primary absolute top-0 left-0"></div>
+                <div class="w-4 h-4 border-t-2 border-r-2 border-primary absolute top-0 right-0"></div>
+                <div class="w-4 h-4 border-b-2 border-l-2 border-primary absolute bottom-0 left-0"></div>
+                <div class="w-4 h-4 border-b-2 border-r-2 border-primary absolute bottom-0 right-0"></div>
+                
+                <div class="w-2 h-2 rounded-full bg-primary/80"></div>
+            </div>
+        </div>
+
+        <!-- Geolocation & Action Panel -->
+        <div class="w-full flex flex-col gap-4 items-center">
+            
+            <!-- GPS Status Pill -->
+            <div class="bg-[#111316]/85 backdrop-blur-md border border-white/10 px-4 py-2.5 rounded-2xl flex flex-col gap-0.5 items-center w-full max-w-[280px]">
+                <div class="flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[15px] text-tertiary">my_location</span>
+                    <span class="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-wider">GPS Position</span>
+                </div>
+                <div class="font-data-md text-on-surface text-[12px] mt-0.5 text-center leading-tight" id="gps-telemetry">
+                    Acquiring satellite lock...
+                </div>
+            </div>
+
+            <!-- Tap to Capture Button -->
+            <div class="pointer-events-auto">
+                <button id="capture-btn" class="w-20 h-20 rounded-full bg-primary/20 border-4 border-primary flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all focus:outline-none">
+                    <div class="w-14 h-14 rounded-full bg-primary flex items-center justify-center text-on-primary-container shadow-inner">
+                        <span class="material-symbols-outlined text-3xl font-bold" style="font-variation-settings: 'FILL' 1;">photo_camera</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Triage Screen Overlay -->
+    <div class="fixed inset-0 z-50 bg-[#111316]/95 backdrop-blur-xl flex flex-col items-center justify-center p-[40px] hidden" id="triage-overlay">
+        <div class="w-full max-w-sm flex flex-col items-center gap-6">
+            
+            <!-- Circular Loading Rings -->
+            <div class="relative w-24 h-24 flex items-center justify-center">
+                <div class="absolute inset-0 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                <div class="absolute inset-2 border-4 border-tertiary/10 border-t-tertiary rounded-full animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
+                <span class="material-symbols-outlined text-primary text-4xl animate-pulse">smart_toy</span>
+            </div>
+
+            <div class="flex flex-col items-center gap-2">
+                <h2 class="font-headline-lg text-headline-lg text-on-surface text-center">Triage Analyzer</h2>
+                <div class="font-data-md text-primary text-[13px] text-center" id="triage-status">
+                    [Llama-4-Scout] Triaging live frame...
+                </div>
+            </div>
+
+            <!-- Triage Console Log -->
+            <div class="w-full bg-[#1C1F22] border border-white/5 rounded-xl p-4 font-mono text-[11px] text-on-surface-variant/80 h-32 overflow-y-auto flex flex-col gap-1.5" id="triage-console">
+                <div>&gt; Initializing webcam capture buffer...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CURRENT_USER = '{{ current_user }}';
+        const USER_CITY = '{{ user_city }}';
+        let liveCoords = null;
+        let isCaptured = false;
+        let areasList = [];
+
+        // Fetch area list corresponding to user's city
+        fetch('/areas')
+            .then(r => r.json())
+            .then(areas => {
+                areasList = areas;
+            })
+            .catch(() => {
+                areasList = ['Indiranagar'];
+            });
+
+        // Initialize geolocation watcher
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(
+                (position) => {
+                    liveCoords = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    const accuracy = Math.round(position.coords.accuracy);
+                    document.getElementById('gps-telemetry').innerHTML = 
+                        `${liveCoords.lat.toFixed(6)}, ${liveCoords.lng.toFixed(6)}<br><span class="text-[10px] text-tertiary font-bold">Accuracy ±${accuracy}m</span>`;
+                },
+                (error) => {
+                    console.error("GPS Lock Failed:", error);
+                    // Use simulated city defaults if real geolocation fails
+                    liveCoords = {
+                        lat: parseFloat('{{ user_lat }}') || 12.9716,
+                        lng: parseFloat('{{ user_lng }}') || 77.5946
+                    };
+                    document.getElementById('gps-telemetry').innerHTML = 
+                        `${liveCoords.lat.toFixed(6)}, ${liveCoords.lng.toFixed(6)} (simulated)`;
+                },
+                { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+            );
+        } else {
+            liveCoords = { lat: 12.9716, lng: 77.5946 };
+            document.getElementById('gps-telemetry').innerHTML = "GPS Not Supported";
+        }
+
+        // Initialize Webcam Stream
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('photo-canvas');
+        const captureBtn = document.getElementById('capture-btn');
+
+        async function startWebcam() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+                    audio: false
+                });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error("Camera access denied:", err);
+                alert("Camera permission is required for the AR Scanner.");
+            }
+        }
+
+        startWebcam();
+
+        // Print to overlay console helper
+        function consoleLog(msg) {
+            const consoleEl = document.getElementById('triage-console');
+            const row = document.createElement('div');
+            row.textContent = `> ${msg}`;
+            consoleEl.appendChild(row);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        // Handle Scan Action
+        captureBtn.addEventListener('click', async () => {
+            if (isCaptured) return;
+            isCaptured = true;
+
+            // Trigger Overlay
+            const overlay = document.getElementById('triage-overlay');
+            overlay.classList.remove('hidden');
+            consoleLog("Freezing video frame...");
+
+            // Capture Frame
+            const ctx = canvas.getContext('2d');
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const b64Data = canvas.toDataURL('image/jpeg');
+            const base64Clean = b64Data.split(',')[1];
+            consoleLog("Frame converted to Base64.");
+
+            // Analyze Frame
+            consoleLog("Uploading to Groq Llama-4-Scout...");
+            document.getElementById('triage-status').textContent = "[Llama-4-Scout] Triaging live frame...";
+            
+            try {
+                const response = await fetch('/ai/analyze-image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        image: base64Clean,
+                        mime_type: 'image/jpeg'
+                    })
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                consoleLog(`AI Classification: ${data.category.toUpperCase()}`);
+                consoleLog(`Estimated Repair Cost: $${data.estimated_cost}`);
+                consoleLog(`Severity: ${data.severity.toUpperCase()}`);
+
+                // Submit Issue Report
+                consoleLog("Submitting municipal triage ticket...");
+                document.getElementById('triage-status').textContent = "Submitting civic report...";
+
+                // Convert captured photo data back to a Blob
+                const byteCharacters = atob(base64Clean);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const imageBlob = new Blob([byteArray], { type: 'image/jpeg' });
+
+                const fd = new FormData();
+                fd.append('user', CURRENT_USER || 'anonymous');
+                fd.append('description', data.description || `Pothole / civic issue identified via AR Scanner. Category: ${data.category}.`);
+                fd.append('tag', data.category || 'other');
+                fd.append('lat', liveCoords ? liveCoords.lat : 12.9716);
+                fd.append('lng', liveCoords ? liveCoords.lng : 77.5946);
+                fd.append('area', areasList.length > 0 ? areasList[0] : 'Indiranagar');
+                fd.append('image', imageBlob, 'capture.jpg');
+
+                const reportResponse = await fetch('/report', {
+                    method: 'POST',
+                    body: fd
+                });
+
+                const reportResult = await reportResponse.json();
+                consoleLog("Ticket submitted successfully!");
+                document.getElementById('triage-status').innerHTML = "✔ Issue reported successfully!<br><span class='text-[11px] text-tertiary'>+5 XP Awarded</span>";
+                
+                // Redirect back to main dashboard on success
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+
+            } catch (err) {
+                console.error(err);
+                consoleLog(`Error: ${err.message || 'Triage engine offline.'}`);
+                document.getElementById('triage-status').innerHTML = "<span class='text-error'>Triage Failed</span>";
+                
+                // Reset capture state
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                    isCaptured = false;
+                }, 4000);
+            }
+        });
+    </script>
+</body>
+</html>

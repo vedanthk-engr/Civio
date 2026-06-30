@@ -8,24 +8,25 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:        #19232f;
-  --bg-2:      #1f2b39;
-  --bg-3:      #25323f;
-  --bg-4:      #2c3a4a;
-  --accent:    #f8c023;   --accent-dim:rgba(248,192,35,0.14);
-  --info:      #3787c7;   --info-dim:rgba(55,135,199,0.16);
-  --red:       #f85149;   --red-dim:rgba(248,81,73,0.14);
-  --green:     #3fb950;   --green-dim:rgba(63,185,80,0.14);
-  --amber:     #e3b341;   --amber-dim:rgba(227,179,65,0.14);
-  --purple:    #a371f7;   --purple-dim:rgba(163,113,247,0.14);
-  --blue:      #3787c7;   --blue-dim:rgba(55,135,199,0.14);
-  --border:    #2f3e4f;   --border-mid:#3a4a5d;
-  --text:#e8eef3; --muted:#7e8b99; --faint:#5a6878;
+  /* Warm Logistics palette */
+  --bg:        #111316;
+  --bg-2:      #1C1F22;
+  --bg-3:      #2C2F34;
+  --bg-4:      #333538;
+  --accent:    #ffb692;   --accent-dim:rgba(255, 182, 146, 0.13);
+  --info:      #00a4a6;   --info-dim:rgba(0, 164, 166, 0.16);
+  --red:       #ffb4ab;   --red-dim:rgba(255, 180, 171, 0.14);
+  --green:     #5cd8da;   --green-dim:rgba(92, 216, 218, 0.14);
+  --amber:     #ffb956;   --amber-dim:rgba(255, 185, 86, 0.14);
+  --purple:    #00a4a6;   --purple-dim:rgba(0, 164, 166, 0.14);
+  --blue:      #ffb692;   --blue-dim:rgba(255, 182, 146, 0.14);
+  --border:    rgba(255, 255, 255, 0.1);   --border-mid:rgba(255, 255, 255, 0.15);
+  --text:#e2e2e6; --muted:#dbc1b6; --faint:#5a6878;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'Inter', system-ui, sans-serif; font-size:13px; color:var(--text); background:var(--bg); min-height:100vh; }
 
-.st-topbar { height:52px; padding:0 18px; background:var(--bg); border-bottom:1px solid rgba(248,192,35,0.18); display:flex; align-items:center; gap:14px; position:sticky; top:0; z-index:50; }
+.st-topbar { height:52px; padding:0 18px; background:var(--bg); border-bottom:1px solid rgba(255, 182, 146, 0.18); display:flex; align-items:center; gap:14px; position:sticky; top:0; z-index:50; }
 .st-brand { display:flex; align-items:center; gap:9px; font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:20px; letter-spacing:2px; color:#fff; }
 .st-brand-dot { width:9px; height:9px; border-radius:50%; background:var(--accent); box-shadow:0 0 14px var(--accent); }
 .st-badge { font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:2px; color:var(--green); padding:3px 9px; background:var(--green-dim); border:1px solid rgba(0,255,136,0.35); text-transform:uppercase; }

@@ -11,33 +11,33 @@
     rel="stylesheet">
   <style>
     :root {
-      /* Civic Trust palette - light, warm, professional */
-      --paper: #FAF5EB;
-      --paper-2: #F2EBDC;
-      --surface: #FFFFFF;
-      --border: #E8E0CC;
-      --border-s: #F0E9D8;
-      --ink: #1A1A1A;
-      --ink-2: #44423E;
-      --ink-3: #7A7569;
-      --ink-4: #ABA59A;
-      --saffron: #E55934;
-      --saffron-d: #B8431F;
-      --saffron-s: #FBE3DA;
-      --navy: #0B3D91;
-      --navy-s: #DCE4F4;
-      --yellow: #F9D923;
-      --yellow-s: #FEF4B5;
-      --green: #15803D;
-      --green-s: #DCFCE7;
-      --red: #DC2626;
-      --red-s: #FEE2E2;
-      --amber: #D97706;
-      --amber-s: #FEF3C7;
-      --purple: #7C3AED;
-      --purple-s: #EDE9FE;
-      --blue: #2563EB;
-      --blue-s: #DBEAFE;
+      /* Civic Trust palette - Redesigned for Stitch Dark Mode */
+      --paper: #15171A;
+      --paper-2: #111316;
+      --surface: #1C1F22;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-s: rgba(255, 255, 255, 0.05);
+      --ink: #e2e2e6;
+      --ink-2: #dbc1b6;
+      --ink-3: #8d9099;
+      --ink-4: #5e636c;
+      --saffron: #ffb692;
+      --saffron-d: #d87b4a;
+      --saffron-s: rgba(255, 182, 146, 0.12);
+      --navy: #5cd8da;
+      --navy-s: rgba(92, 216, 218, 0.12);
+      --yellow: #ffb956;
+      --yellow-s: rgba(255, 185, 86, 0.12);
+      --green: #5cd8da;
+      --green-s: rgba(92, 216, 218, 0.12);
+      --red: #ffb4ab;
+      --red-s: rgba(255, 180, 171, 0.12);
+      --amber: #ffb956;
+      --amber-s: rgba(255, 185, 86, 0.12);
+      --purple: #00a4a6;
+      --purple-s: rgba(0, 164, 166, 0.12);
+      --blue: #ffb692;
+      --blue-s: rgba(255, 182, 146, 0.12);
     }
 
     * {
@@ -470,7 +470,7 @@
     }
 
     .gv-urgent-cta:hover {
-      background: white;
+      background: var(--paper-2);
     }
 
     /* KPI grid */
@@ -1093,7 +1093,7 @@
     }
 
     .gv-ai-draft {
-      background: white;
+      background: var(--paper-2);
       padding: 12px;
       border-radius: 8px;
       font-size: 13px;
@@ -1125,7 +1125,7 @@
     }
 
     .gv-ai-btn.copy {
-      background: white;
+      background: var(--paper-2);
       color: var(--ink-2);
       border: 1px solid var(--border);
     }

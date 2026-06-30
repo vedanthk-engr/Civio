@@ -6,49 +6,48 @@
 <meta name="theme-color" content="#1c1f25">
 <title>{% block title %}Civio Monitor{% endblock %}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  /* FR24-yellow palette — single source of truth */
-  --bg:        #1c1f25;
-  --bg-2:      #232730;
-  --bg-3:      #2a2f3a;
-  --bg-4:      #353a47;
-  --accent:    #f8c023;
-  --accent-2:  #ffd34d;
-  --accent-dim:rgba(248,192,35,0.13);
-  --red:       #e74c3c;   --red-dim:rgba(231,76,60,0.14);
-  --green:     #27ae60;   --green-dim:rgba(39,174,96,0.14);
-  --amber:     #f39c12;   --amber-dim:rgba(243,156,18,0.14);
-  --blue:      #4a90e2;   --blue-dim:rgba(74,144,226,0.16);
-  --border:    #2f3441;   --border-mid:#3d4352;
-  --text:      #ffffff;   --text-2:#b8bcc6;
-  --muted:     #8d9099;   --faint:#5e636c;
+  /* Warm Logistics palette */
+  --bg:        #111316;
+  --bg-2:      #1C1F22;
+  --bg-3:      #2C2F34;
+  --bg-4:      #333538;
+  --accent:    #ffb692;
+  --accent-2:  #ffb956;
+  --accent-dim:rgba(255, 182, 146, 0.13);
+  --red:       #ffb4ab;   --red-dim:rgba(255, 180, 171, 0.14);
+  --green:     #5cd8da;   --green-dim:rgba(92, 216, 218, 0.14);
+  --amber:     #ffb956;   --amber-dim:rgba(255, 185, 86, 0.14);
+  --blue:      #00a4a6;   --blue-dim:rgba(0, 164, 166, 0.16);
+  --border:    rgba(255, 255, 255, 0.1);   --border-mid:rgba(255, 255, 255, 0.15);
+  --text:      #e2e2e6;   --text-2:#dbc1b6;
+  --muted:     #dbc1b6;   --faint:#5e636c;
 
-  /* Aliases for the sub-pages (issues.html / my_issues.html / ngos.html / community.html)
-     so they can use --surface, --text2, --text3 etc. without rewriting */
-  --surface:   #232730;
-  --surface2:  #2a2f3a;
-  --text2:     #b8bcc6;
+  /* Aliases for the sub-pages (issues.html / my_issues.html / ngos.html / community.html) */
+  --surface:   #1C1F22;
+  --surface2:  #2C2F34;
+  --text2:     #dbc1b6;
   --text3:     #8d9099;
-  --shadow:    0 2px 8px rgba(0,0,0,0.3);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
-  --post-alert-bg:    rgba(231,76,60,0.10);
-  --post-resolved-bg: rgba(39,174,96,0.10);
+  --shadow:    0 2px 8px rgba(0,0,0,0.5);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.7);
+  --post-alert-bg:    rgba(255, 180, 171, 0.10);
+  --post-resolved-bg: rgba(92, 216, 218, 0.10);
   --nav-h: 48px;
 }
 
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-html, body { width:100%; min-height:100%; font-family:'Inter', system-ui, sans-serif; font-size:13px; line-height:1.5; color:var(--text); background:var(--bg); }
+html, body { width:100%; min-height:100%; font-family:'Plus Jakarta Sans', 'Inter', system-ui, sans-serif; font-size:13px; line-height:1.5; color:var(--text); background:var(--bg); }
 body { overflow:hidden; }
 button, input, select, textarea { font-family:inherit; color:inherit; background:transparent; border:none; outline:none; }
 a { color:inherit; text-decoration:none; }
 
-/* ═══ TOPBAR (shared with index.html, mobile-aware) ═══ */
+/* ═══ TOPBAR ═══ */
 .topbar {
   position:fixed; top:0; left:0; right:0; z-index:300;
   height:var(--nav-h); padding:0 14px;
-  background:var(--bg); border-bottom:1px solid rgba(248,192,35,0.18);
+  background:var(--bg); border-bottom:1px solid rgba(255, 182, 146, 0.18);
   display:flex; align-items:center; gap:10px;
 }
 .tb-left { display:flex; align-items:center; gap:8px; }
@@ -351,8 +350,7 @@ input, textarea, select { font-size:16px; }
 <!-- ── TOPBAR ── -->
 <div class="topbar">
   <div class="tb-left">
-    <!-- FIX: correct AR scanner URL → https://areapulse-cam.onrender.com/ -->
-    <a href="https://areapulse-cam.onrender.com/" target="_blank" class="tb-action ar" title="AR Scanner">
+    <a href="/scan" class="tb-action ar" title="AR Scanner">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 8V6a2 2 0 0 1 2-2h2M22 8V6a2 2 0 0 0-2-2h-2M2 16v2a2 2 0 0 0 2 2h2M22 16v2a2 2 0 0 1-2 2h-2"/><circle cx="12" cy="12" r="3"/></svg>
       <span>AR SCAN</span>
     </a>
@@ -510,7 +508,7 @@ function _initBaseBottomNav(){
       <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
       <span>Reports</span>
     </a>
-    <a class="m-navbtn ar" href="https://areapulse-cam.onrender.com/" target="_blank" rel="noopener" title="AR Scan">
+    <a class="m-navbtn ar" href="/scan" title="AR Scan">
       <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
       <span>AR Scan</span>
     </a>

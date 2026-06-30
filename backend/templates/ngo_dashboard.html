@@ -8,33 +8,34 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,700;1,700&family=Caveat:wght@500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --paper:     #FAF5EB;
-  --paper-2:   #F2EBDC;
-  --surface:   #FFFFFF;
-  --border:    #E8E0CC;
-  --border-s:  #F0E9D8;
-  --ink:       #1A1A1A;
-  --ink-2:     #44423E;
-  --ink-3:     #7A7569;
-  --ink-4:     #ABA59A;
-  --saffron:   #E55934;
-  --saffron-d: #B8431F;
-  --saffron-s: #FBE3DA;
-  --sage:      #6B9473;
-  --sage-d:    #4F7158;
-  --sage-s:    #E3EFE3;
-  --navy:      #0B3D91;
-  --navy-s:    #DCE4F4;
-  --yellow:    #F9D923;
-  --yellow-s:  #FEF4B5;
-  --green:     #15803D;
-  --green-s:   #DCFCE7;
-  --red:       #DC2626;
-  --red-s:     #FEE2E2;
-  --amber:     #D97706;
-  --amber-s:   #FEF3C7;
-  --blue:      #2563EB;
-  --blue-s:    #DBEAFE;
+  /* Warm Logistics Dark Mode equivalents */
+  --paper:     #15171A;
+  --paper-2:   #111316;
+  --surface:   #1C1F22;
+  --border:    rgba(255, 255, 255, 0.08);
+  --border-s:  rgba(255, 255, 255, 0.05);
+  --ink:       #e2e2e6;
+  --ink-2:     #dbc1b6;
+  --ink-3:     #8d9099;
+  --ink-4:     #5e636c;
+  --saffron:   #ffb692;
+  --saffron-d: #d87b4a;
+  --saffron-s: rgba(255, 182, 146, 0.12);
+  --sage:      #5cd8da;
+  --sage-d:    #00a4a6;
+  --sage-s:    rgba(92, 216, 218, 0.12);
+  --navy:      #5cd8da;
+  --navy-s:    rgba(92, 216, 218, 0.12);
+  --yellow:    #ffb956;
+  --yellow-s:  rgba(255, 185, 86, 0.12);
+  --green:     #5cd8da;
+  --green-s:   rgba(92, 216, 218, 0.12);
+  --red:       #ffb4ab;
+  --red-s:     rgba(255, 180, 171, 0.12);
+  --amber:     #ffb956;
+  --amber-s:   rgba(255, 185, 86, 0.12);
+  --blue:      #ffb692;
+  --blue-s:    rgba(255, 182, 146, 0.12);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -524,7 +525,7 @@ button, a { font-family: inherit; cursor: pointer; border: 0; text-decoration: n
 .ng-ai-btn {
   display: inline-block;
   margin-top: 14px;
-  background: white;
+  background: var(--paper-2);
   color: #7C3AED;
   padding: 8px 16px;
   border-radius: 10px;
