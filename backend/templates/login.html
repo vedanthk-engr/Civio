@@ -329,6 +329,15 @@ body {
       <div class="input-group">
         <input type="text" name="name" id="citizen-name" placeholder="Your name" required autocomplete="username"/>
       </div>
+      <div class="input-group">
+        <select name="city" required style="width:100%; padding:15px 18px; border:1px solid #e0e0e0; border-radius:14px; font-family:inherit; font-size:15px; color:#1a1a1a; outline:none; background:#fff; cursor:pointer; margin-bottom: 2px;">
+          <option value="bengaluru">Bengaluru</option>
+          <option value="delhi">Delhi</option>
+          <option value="chennai">Chennai</option>
+          <option value="mumbai">Mumbai</option>
+          <option value="hyderabad">Hyderabad</option>
+        </select>
+      </div>
       <!-- Citizen leaves pin blank -->
       <input type="hidden" name="pin" value=""/>
       <button type="submit" class="submit-btn">Log in</button>
@@ -344,6 +353,15 @@ body {
         <input type="text" name="name" id="gov-username" placeholder="Government Username" required autocomplete="username"/>
       </div>
       <div class="input-group">
+        <select name="city" required style="width:100%; padding:15px 18px; border:1px solid #e0e0e0; border-radius:14px; font-family:inherit; font-size:15px; color:#1a1a1a; outline:none; background:#fff; cursor:pointer; margin-bottom: 2px;">
+          <option value="bengaluru">Bengaluru</option>
+          <option value="delhi">Delhi</option>
+          <option value="chennai">Chennai</option>
+          <option value="mumbai">Mumbai</option>
+          <option value="hyderabad">Hyderabad</option>
+        </select>
+      </div>
+      <div class="input-group">
         <input type="password" name="pin" id="gov-pin" placeholder="Security PIN" required maxlength="6" autocomplete="off"/>
       </div>
       <button type="submit" class="submit-btn">Enter Portal</button>
@@ -357,6 +375,15 @@ body {
     <form method="POST" action="/login" id="ngo-form">
       <div class="input-group">
         <input type="text" name="name" id="ngo-username" placeholder="NGO Username" required autocomplete="username"/>
+      </div>
+      <div class="input-group">
+        <select name="city" required style="width:100%; padding:15px 18px; border:1px solid #e0e0e0; border-radius:14px; font-family:inherit; font-size:15px; color:#1a1a1a; outline:none; background:#fff; cursor:pointer; margin-bottom: 2px;">
+          <option value="bengaluru">Bengaluru</option>
+          <option value="delhi">Delhi</option>
+          <option value="chennai">Chennai</option>
+          <option value="mumbai">Mumbai</option>
+          <option value="hyderabad">Hyderabad</option>
+        </select>
       </div>
       <div class="input-group">
         <input type="password" name="pin" id="ngo-pin" placeholder="Security PIN" required maxlength="6" autocomplete="off"/>

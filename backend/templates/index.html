@@ -1415,7 +1415,7 @@ function updateClock() {
 }
 setInterval(updateClock, 1000); updateClock();
 
-const map = L.map('map', { zoomControl:false, preferCanvas:false }).setView([12.9716, 77.5946], 12);
+const map = L.map('map', { zoomControl:false, preferCanvas:false }).setView([{{ user_lat|default(12.9716) }}, {{ user_lng|default(77.5946) }}], 12);
 let _tileLayer = null;
 let _currentStyle = MAPTILER_STYLE;
 if (MAPTILER_KEY) {

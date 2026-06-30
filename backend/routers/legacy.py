@@ -65,7 +65,23 @@ NGO_ACCOUNTS = {
     }
 }
 
-def map_civio_to_civio_issue(c_issue: dict) -> dict:
+CITIES_COORDINATES = {
+    "bengaluru": [12.9716, 77.5946],
+    "delhi": [28.6139, 77.2090],
+    "chennai": [13.0827, 80.2707],
+    "mumbai": [19.0760, 72.8777],
+    "hyderabad": [17.3850, 78.4867]
+}
+
+CITY_AREAS = {
+    "bengaluru": ["Indiranagar", "Koramangala", "Whitefield", "Jayanagar", "Malleshwaram", "HSR Layout"],
+    "delhi": ["Connaught Place", "Karol Bagh", "Saket", "Vasant Kunj", "Dwarka", "Rohini"],
+    "chennai": ["Adyar", "T. Nagar", "Mylapore", "Velachery", "Nungambakkam", "Anna Nagar"],
+    "mumbai": ["Andheri", "Bandra", "Colaba", "Juhu", "Worli", "Dadar"],
+    "hyderabad": ["Gachibowli", "Jubilee Hills", "Banjara Hills", "Madhapur", "Secunderabad", "Begumpet"]
+}
+
+def map_civio_to_civio_issue(c_issue: dict, city: Optional[str] = None) -> dict:
     loc = c_issue.get("location") or {}
     ai = c_issue.get("aiAnalysis") or {}
     
@@ -98,17 +114,42 @@ def map_civio_to_civio_issue(c_issue: dict) -> dict:
             sla_state = "soon" if time_diff <= 24 else "safe"
             sla_remaining_hours = time_diff
             sla_overdue_hours = 0
+            
+    lat = loc.get("lat", 12.9716)
+    lng = loc.get("lng", 77.5946)
+    original_area = loc.get("ward") or loc.get("address") or "Indiranagar"
+    area = original_area
+    
+    if city and city.lower() in CITIES_COORDINATES:
+        city_lower = city.lower()
+        target_lat, target_lng = CITIES_COORDINATES[city_lower]
+        # Shift coordinates (Bengaluru is base center: [12.9716, 77.5946])
+        lat_offset = target_lat - 12.9716
+        lng_offset = target_lng - 77.5946
+        lat = lat + lat_offset
+        lng = lng + lng_offset
+        
+        # Translate area name
+        bengaluru_areas = CITY_AREAS["bengaluru"]
+        target_areas = CITY_AREAS.get(city_lower, bengaluru_areas)
+        matched_index = 0
+        for idx, a in enumerate(bengaluru_areas):
+            if a.lower() in original_area.lower():
+                matched_index = idx
+                break
+        if matched_index < len(target_areas):
+            area = target_areas[matched_index]
     
     return {
         "id": c_issue.get("id", "").replace("ISS-", ""),
         "user_name": c_issue.get("reportedBy", "Citizen"),
-        "area": loc.get("ward") or loc.get("address") or "Indiranagar",
+        "area": area,
         "description": c_issue.get("description", ""),
         "severity": "high" if ai.get("severityScore", 5) >= 7 else "medium" if ai.get("severityScore", 5) >= 4 else "low",
         "tag": category,
         "status": status,
-        "lat": loc.get("lat", 12.9716),
-        "lng": loc.get("lng", 77.5946),
+        "lat": lat,
+        "lng": lng,
         "landmark": loc.get("address", ""),
         "contact": "",
         "image": c_issue.get("thumbnailUrl") or (c_issue.get("mediaUrls")[0] if c_issue.get("mediaUrls") else ""),
@@ -132,12 +173,17 @@ def map_civio_to_civio_issue(c_issue: dict) -> dict:
 @router.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     user = request.session.get('user')
+    city = request.session.get('city', 'bengaluru')
+    coords = CITIES_COORDINATES.get(city, [12.9716, 77.5946])
     return templates.TemplateResponse(
         request,
         "index.html",
         {
             "request": request,
             "current_user": user,
+            "user_city": city,
+            "user_lat": coords[0],
+            "user_lng": coords[1],
             "maptiler_key": os.environ.get('MAPTILER_KEY', ''),
             "maptiler_style": os.environ.get('MAPTILER_STYLE', 'hybrid'),
             "ai_available": True,
@@ -155,16 +201,19 @@ async def get_login(request: Request):
 async def post_login(
     request: Request,
     name: str = Form(...),
-    pin: str = Form(...)
+    pin: str = Form(...),
+    city: str = Form("bengaluru")
 ):
     name_clean = name.strip().lower()
     pin_clean = pin.strip()
+    city_clean = city.strip().lower()
     
     gov = GOV_ACCOUNTS.get(name_clean)
     if gov:
         if pin_clean != gov.get('pin'):
             return templates.TemplateResponse(request, "login.html", {"request": request, "error": "Incorrect PIN for government account"})
         request.session['user'] = gov['name']
+        request.session['city'] = city_clean
         request.session['gov_role'] = {
             'username': name_clean,
             'authority': gov['authority'],
@@ -177,6 +226,7 @@ async def post_login(
         if pin_clean != ngo.get('pin'):
             return templates.TemplateResponse(request, "login.html", {"request": request, "error": "Incorrect PIN for NGO account"})
         request.session['user'] = ngo['name']
+        request.session['city'] = city_clean
         request.session['ngo_role'] = {
             'username': name_clean,
             'name': ngo['name'],
@@ -190,6 +240,7 @@ async def post_login(
         
     # Log in as normal citizen
     request.session['user'] = name
+    request.session['city'] = city_clean
     return RedirectResponse(url="/", status_code=303)
 
 @router.get("/logout")
@@ -201,11 +252,12 @@ async def logout(request: Request):
 async def get_gov_dashboard(request: Request):
     user = request.session.get('user')
     gov_role = request.session.get('gov_role')
+    city = request.session.get('city', 'bengaluru')
     if not user or not gov_role:
         return RedirectResponse(url="/login", status_code=303)
         
     raw_issues = db.list_documents("issues")
-    mapped_issues = [map_civio_to_civio_issue(x) for x in raw_issues]
+    mapped_issues = [map_civio_to_civio_issue(x, city) for x in raw_issues]
     
     officer_tags = [t.lower() for t in gov_role.get("tags", [])]
     filtered_issues = [
@@ -239,11 +291,23 @@ async def get_gov_dashboard(request: Request):
 async def get_ngo_dashboard(request: Request):
     user = request.session.get('user')
     ngo_role = request.session.get('ngo_role')
+    city = request.session.get('city', 'bengaluru')
     if not user or not ngo_role:
         return RedirectResponse(url="/login", status_code=303)
         
+    # Dynamically map operating areas
+    bengaluru_areas = CITY_AREAS["bengaluru"]
+    target_areas = CITY_AREAS.get(city, bengaluru_areas)
+    ngo_mapped_areas = []
+    for area in ngo_role.get('operating_areas', []):
+        if area in bengaluru_areas:
+            ngo_mapped_areas.append(target_areas[bengaluru_areas.index(area)])
+        else:
+            ngo_mapped_areas.append(area)
+    ngo_role['operating_areas'] = ngo_mapped_areas
+
     raw_issues = db.list_documents("issues")
-    mapped_issues = [map_civio_to_civio_issue(x) for x in raw_issues]
+    mapped_issues = [map_civio_to_civio_issue(x, city) for x in raw_issues]
     
     unresolved = [x for x in mapped_issues if x.get("status") not in ["resolved", "closed", "duplicate"]]
     
@@ -327,8 +391,9 @@ async def get_my_reports(request: Request):
 
 @router.get("/issues")
 async def list_issues_legacy(request: Request):
+    city = request.session.get('city', 'bengaluru')
     issues = db.list_documents("issues")
-    mapped = [map_civio_to_civio_issue(x) for x in issues]
+    mapped = [map_civio_to_civio_issue(x, city) for x in issues]
     return mapped
 
 @router.post("/report")
@@ -339,6 +404,7 @@ async def report_issue_legacy(
     tag: str = Form("other"),
     lat: float = Form(12.9716),
     lng: float = Form(77.5946),
+    area: str = Form("Indiranagar"),
     image: Optional[UploadFile] = File(None)
 ):
     import uuid
@@ -365,12 +431,32 @@ async def report_issue_legacy(
         })
         raise HTTPException(status_code=400, detail=f"Submission rejected: {spam_check['reason']}")
         
+    city = request.session.get('city', 'bengaluru')
+    db_lat = lat
+    db_lng = lng
+    db_area = area
+    
+    if city and city.lower() in CITIES_COORDINATES and city.lower() != "bengaluru":
+        city_lower = city.lower()
+        target_lat, target_lng = CITIES_COORDINATES[city_lower]
+        lat_offset = target_lat - 12.9716
+        lng_offset = target_lng - 77.5946
+        db_lat = lat - lat_offset
+        db_lng = lng - lng_offset
+        
+        bengaluru_areas = CITY_AREAS["bengaluru"]
+        target_areas = CITY_AREAS.get(city_lower, bengaluru_areas)
+        matched_idx = 0
+        if area in target_areas:
+            matched_idx = target_areas.index(area)
+        db_area = bengaluru_areas[matched_idx]
+
     existing_issues = db.list_documents("issues")
     
     # Run duplicate check
     from backend.services.gemini_service import detect_duplicate
     dup_id = await detect_duplicate(
-        {"lat": lat, "lng": lng, "ward": "Indiranagar"},
+        {"lat": db_lat, "lng": db_lng, "ward": db_area},
         tag.upper(),
         description,
         existing_issues
@@ -389,10 +475,10 @@ async def report_issue_legacy(
         "category": tag.upper(),
         "subcategory": tag.title(),
         "location": {
-            "lat": lat,
-            "lng": lng,
-            "address": f"Location near {lat:.4f}, {lng:.4f}",
-            "ward": "Indiranagar",
+            "lat": db_lat,
+            "lng": db_lng,
+            "address": f"Location near {db_lat:.4f}, {db_lng:.4f}",
+            "ward": db_area,
             "zone": "East Zone"
         },
         "mediaUrls": [f"data:image/jpeg;base64,{img_b64}"] if img_b64 else [],
@@ -464,17 +550,9 @@ async def verify_issue_legacy(id: str, request: Request):
     return {"success": True, "verifiedByCount": len(verified_by)}
 
 @router.get("/areas")
-async def get_areas_legacy():
-    return {
-        "areas": {
-            "Indiranagar": [12.971897, 77.641151],
-            "Koramangala": [12.935192, 77.624480],
-            "Whitefield": [12.969818, 77.749969],
-            "Jayanagar": [12.9299, 77.5824],
-            "Malleshwaram": [12.9982, 77.5694],
-            "HSR Layout": [12.9105, 77.6450]
-        }
-    }
+async def get_areas_legacy(request: Request):
+    city = request.session.get('city', 'bengaluru')
+    return CITY_AREAS.get(city.lower(), CITY_AREAS["bengaluru"])
 
 @router.get("/stats")
 async def get_stats_legacy():
@@ -705,10 +783,11 @@ async def gov_ai_draft_response_legacy(id: str):
     return {"success": True, "draft_response": reply}
 
 @router.get("/my-issues-data")
-async def get_my_issues_data_legacy(user: str):
+async def get_my_issues_data_legacy(user: str, request: Request):
+    city = request.session.get('city', 'bengaluru')
     issues = db.list_documents("issues")
     user_issues = [x for x in issues if x.get("reportedBy") == user]
-    return {"issues": [map_civio_to_civio_issue(x) for x in user_issues]}
+    return {"issues": [map_civio_to_civio_issue(x, city) for x in user_issues]}
 
 @router.get("/user/stats")
 async def get_user_stats_legacy(name: str):
@@ -726,13 +805,14 @@ async def get_user_stats_legacy(name: str):
     }
 
 @router.get("/issue/{id}/detail")
-async def get_issue_detail_legacy(id: str):
+async def get_issue_detail_legacy(id: str, request: Request):
     issue = db.get_document("issues", id)
     if not issue:
         issue = db.get_document("issues", f"ISS-{id}")
     if not issue:
         raise HTTPException(status_code=404, detail="Issue not found")
-    return {"issue": map_civio_to_civio_issue(issue)}
+    city = request.session.get('city', 'bengaluru')
+    return {"issue": map_civio_to_civio_issue(issue, city)}
 
 @router.post("/gov/update-status/{id}")
 async def gov_update_status_legacy(
