@@ -65,7 +65,7 @@ NGO_ACCOUNTS = {
     }
 }
 
-def map_civio_to_areapulse_issue(c_issue: dict) -> dict:
+def map_civio_to_civio_issue(c_issue: dict) -> dict:
     loc = c_issue.get("location") or {}
     ai = c_issue.get("aiAnalysis") or {}
     
@@ -73,6 +73,31 @@ def map_civio_to_areapulse_issue(c_issue: dict) -> dict:
     category = str(c_issue.get("category", "other")).lower()
     # Map status
     status = str(c_issue.get("status", "open")).lower()
+    
+    # SLA calculation
+    reported_at_str = c_issue.get("reportedAt")
+    sla_deadline_str = c_issue.get("slaDeadline")
+    
+    reported_at = datetime.fromisoformat(reported_at_str.replace("Z", "")) if reported_at_str else datetime.utcnow()
+    sla_deadline = datetime.fromisoformat(sla_deadline_str.replace("Z", "")) if sla_deadline_str else (reported_at + timedelta(hours=72))
+    
+    sla_hours = int((sla_deadline - reported_at).total_seconds() / 3600)
+    
+    now = datetime.utcnow()
+    if status in ["resolved", "closed"]:
+        sla_state = "resolved"
+        sla_remaining_hours = 0
+        sla_overdue_hours = 0
+    else:
+        time_diff = (sla_deadline - now).total_seconds() / 3600
+        if time_diff < 0:
+            sla_state = "overdue"
+            sla_overdue_hours = abs(time_diff)
+            sla_remaining_hours = 0
+        else:
+            sla_state = "soon" if time_diff <= 24 else "safe"
+            sla_remaining_hours = time_diff
+            sla_overdue_hours = 0
     
     return {
         "id": c_issue.get("id", "").replace("ISS-", ""),
@@ -93,7 +118,11 @@ def map_civio_to_areapulse_issue(c_issue: dict) -> dict:
         "verified": len(c_issue.get("verifiedBy", [])) > 0,
         "escalated": status == "escalated",
         "resolved": status in ["resolved", "closed"],
-        "status_history": []
+        "status_history": [],
+        "sla_hours": sla_hours,
+        "sla_state": sla_state,
+        "sla_overdue_hours": sla_overdue_hours,
+        "sla_remaining_hours": sla_remaining_hours
     }
 
 # ═══════════════════════════════════════════════════════
@@ -104,6 +133,7 @@ def map_civio_to_areapulse_issue(c_issue: dict) -> dict:
 async def home(request: Request):
     user = request.session.get('user')
     return templates.TemplateResponse(
+        request,
         "index.html",
         {
             "request": request,
@@ -119,7 +149,7 @@ async def home(request: Request):
 
 @router.get("/login", response_class=HTMLResponse)
 async def get_login(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+    return templates.TemplateResponse(request, "login.html", {"request": request})
 
 @router.post("/login")
 async def post_login(
@@ -133,7 +163,7 @@ async def post_login(
     gov = GOV_ACCOUNTS.get(name_clean)
     if gov:
         if pin_clean != gov.get('pin'):
-            return templates.TemplateResponse("login.html", {"request": request, "error": "Incorrect PIN for government account"})
+            return templates.TemplateResponse(request, "login.html", {"request": request, "error": "Incorrect PIN for government account"})
         request.session['user'] = gov['name']
         request.session['gov_role'] = {
             'username': name_clean,
@@ -145,7 +175,7 @@ async def post_login(
     ngo = NGO_ACCOUNTS.get(name_clean)
     if ngo:
         if pin_clean != ngo.get('pin'):
-            return templates.TemplateResponse("login.html", {"request": request, "error": "Incorrect PIN for NGO account"})
+            return templates.TemplateResponse(request, "login.html", {"request": request, "error": "Incorrect PIN for NGO account"})
         request.session['user'] = ngo['name']
         request.session['ngo_role'] = {
             'username': name_clean,
@@ -173,12 +203,34 @@ async def get_gov_dashboard(request: Request):
     gov_role = request.session.get('gov_role')
     if not user or not gov_role:
         return RedirectResponse(url="/login", status_code=303)
+        
+    raw_issues = db.list_documents("issues")
+    mapped_issues = [map_civio_to_civio_issue(x) for x in raw_issues]
+    
+    officer_tags = [t.lower() for t in gov_role.get("tags", [])]
+    filtered_issues = [
+        i for i in mapped_issues
+        if i.get("tag") in officer_tags
+    ]
+    
+    stats = {
+        "total": len(filtered_issues),
+        "escalated": len([x for x in filtered_issues if x.get("status") == "escalated"]),
+        "resolved": len([x for x in filtered_issues if x.get("status") in ["resolved", "closed"]]),
+        "overdue": len([x for x in filtered_issues if x.get("sla_state") == "overdue"]),
+        "soon": len([x for x in filtered_issues if x.get("sla_state") == "soon"]),
+    }
+    
     return templates.TemplateResponse(
+        request,
         "gov.html",
         {
             "request": request,
             "current_user": user,
             "gov_role": gov_role,
+            "gov": gov_role,
+            "issues": filtered_issues,
+            "stats": stats,
             "wa_number": os.environ.get('TWILIO_WHATSAPP_NUMBER', '').replace('whatsapp:', '').replace('+', '')
         }
     )
@@ -189,39 +241,85 @@ async def get_ngo_dashboard(request: Request):
     ngo_role = request.session.get('ngo_role')
     if not user or not ngo_role:
         return RedirectResponse(url="/login", status_code=303)
+        
+    raw_issues = db.list_documents("issues")
+    mapped_issues = [map_civio_to_civio_issue(x) for x in raw_issues]
+    
+    unresolved = [x for x in mapped_issues if x.get("status") not in ["resolved", "closed", "duplicate"]]
+    
+    opps_map = {}
+    for x in unresolved:
+        area = x.get("area")
+        tag = x.get("tag")
+        if not area or not tag:
+            continue
+        key = (area, tag)
+        if key not in opps_map:
+            opps_map[key] = []
+        opps_map[key].append(x)
+        
+    opportunities = []
+    for (area, tag), list_issues in opps_map.items():
+        if tag not in [t.lower() for t in ngo_role.get("tags", [])]:
+            continue
+        opportunities.append({
+            "tag": tag,
+            "title": f"Community {tag.capitalize()} Project",
+            "area": area,
+            "issue_count": len(list_issues),
+            "citizens_affected": len(list_issues) * 150 + 50,
+            "ngos_active": 0,
+            "committed_by_me": False
+        })
+        
+    stats = {
+        "opportunities": len(opportunities),
+        "citizens_reachable": f"{sum(opp['citizens_affected'] for opp in opportunities)}+" if opportunities else "0",
+        "underserved_areas": len(set(opp["area"] for opp in opportunities)),
+        "committed": 0,
+        "total_helped": 3400,
+        "total_resolved": 47,
+        "avg_days": 9
+    }
+    
     return templates.TemplateResponse(
+        request,
         "ngo_dashboard.html",
         {
             "request": request,
             "current_user": user,
-            "ngo_role": ngo_role
+            "ngo_role": ngo_role,
+            "ngo": ngo_role,
+            "opportunities": opportunities,
+            "my_projects": [],
+            "stats": stats
         }
     )
 
 @router.get("/quests", response_class=HTMLResponse)
 async def get_quests_page(request: Request):
     user = request.session.get('user') or "cit_1"
-    return templates.TemplateResponse("quests.html", {"request": request, "current_user": user})
+    return templates.TemplateResponse(request, "quests.html", {"request": request, "current_user": user})
 
 @router.get("/budget", response_class=HTMLResponse)
 async def get_budget_page(request: Request):
     user = request.session.get('user')
-    return templates.TemplateResponse("budget.html", {"request": request, "current_user": user})
+    return templates.TemplateResponse(request, "budget.html", {"request": request, "current_user": user})
 
 @router.get("/stats", response_class=HTMLResponse)
 async def get_stats_page(request: Request):
     user = request.session.get('user')
-    return templates.TemplateResponse("stats.html", {"request": request, "current_user": user})
+    return templates.TemplateResponse(request, "stats.html", {"request": request, "current_user": user})
 
 @router.get("/community", response_class=HTMLResponse)
 async def get_community_page(request: Request):
     user = request.session.get('user')
-    return templates.TemplateResponse("community.html", {"request": request, "current_user": user})
+    return templates.TemplateResponse(request, "community.html", {"request": request, "current_user": user})
 
 @router.get("/my-reports", response_class=HTMLResponse)
 async def get_my_reports(request: Request):
     user = request.session.get('user') or "cit_1"
-    return templates.TemplateResponse("my_issues.html", {"request": request, "current_user": user})
+    return templates.TemplateResponse(request, "my_issues.html", {"request": request, "current_user": user})
 
 # ═══════════════════════════════════════════════════════
 #  APIs
@@ -230,7 +328,7 @@ async def get_my_reports(request: Request):
 @router.get("/issues")
 async def list_issues_legacy(request: Request):
     issues = db.list_documents("issues")
-    mapped = [map_civio_to_areapulse_issue(x) for x in issues]
+    mapped = [map_civio_to_civio_issue(x) for x in issues]
     return mapped
 
 @router.post("/report")
@@ -610,7 +708,7 @@ async def gov_ai_draft_response_legacy(id: str):
 async def get_my_issues_data_legacy(user: str):
     issues = db.list_documents("issues")
     user_issues = [x for x in issues if x.get("reportedBy") == user]
-    return {"issues": [map_civio_to_areapulse_issue(x) for x in user_issues]}
+    return {"issues": [map_civio_to_civio_issue(x) for x in user_issues]}
 
 @router.get("/user/stats")
 async def get_user_stats_legacy(name: str):
@@ -634,7 +732,7 @@ async def get_issue_detail_legacy(id: str):
         issue = db.get_document("issues", f"ISS-{id}")
     if not issue:
         raise HTTPException(status_code=404, detail="Issue not found")
-    return {"issue": map_civio_to_areapulse_issue(issue)}
+    return {"issue": map_civio_to_civio_issue(issue)}
 
 @router.post("/gov/update-status/{id}")
 async def gov_update_status_legacy(

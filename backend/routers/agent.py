@@ -12,7 +12,7 @@ async def trigger_resolution_agent(id: str):
     if not issue:
         issue = db.get_document("issues", f"ISS-{id}")
     if not issue:
-        # Try numeric ID if AreaPulse passed it
+        # Try numeric ID if Civio passed it
         issues = db.list_documents("issues")
         for x in issues:
             if x.get("id", "").replace("ISS-", "") == id:

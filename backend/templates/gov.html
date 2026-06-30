@@ -1824,7 +1824,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `areapulse-issues-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.download = `civio-issues-${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
       URL.revokeObjectURL(url);
       showToast('✓ Exported CSV', 'success');
